@@ -3,6 +3,10 @@ CC := GCC5
 
 PACKAGE_DSC := SwitchOSPkg/SwitchOSPkg.dsc
 
+ifeq (, $(shell which build))
+$(error "No build command found. Run '. ../edksetup.sh'")
+endif
+
 .default: all
 
 all:
