@@ -32,9 +32,15 @@ prepare-qemu:
 
 qemu: prepare-qemu
 	$(QEMU) \
-	  -drive if=pflash,format=raw,file=$(OVMF) \
-	  -drive format=raw,file=fat:rw:$(TEST_ROOT_DIR) \
-	  -net none
+		-m 4G \
+		-smp 2 \
+		-drive if=pflash,format=raw,file=$(OVMF) \
+		-hda $(LINUX_IMAGE) \
+		-drive format=raw,file=fat:rw:$(TEST_ROOT_DIR) \
+		-boot menu=on
+		-enable-kvm \
+		-vga virtio \
+		-net nic -net user,hostfwd=tcp::2222-:22 \
 
 .PHONY: prepare-qemu qemu
 
