@@ -10,7 +10,7 @@
 .*.swp
 
 tags
-build/*
+build
 
 compile_commands.json
 
@@ -25,3 +25,4 @@ apdu_out
 thoughts.md
 
 test
+.env
