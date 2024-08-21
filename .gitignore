@@ -2,6 +2,13 @@
 *.a
 *.so
 *.so.*
+*.cmd
+*.symvers
+*.order
+*.d
+*.ko
+*.mod
+*.mod.c
 
 *~
 .*~
