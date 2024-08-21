@@ -26,3 +26,6 @@ thoughts.md
 
 test
 .env
+.cache
+
+.idea
