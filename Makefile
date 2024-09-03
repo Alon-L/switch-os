@@ -1,43 +1,52 @@
 QEMU ?= qemu-system-x86_64
 
-DRIVER_ARCH ?= X64
-DRIVER_DIR ?= SwitchOSPkg
-DRIVER_BUILD_DIR ?= $(PWD)/$(DRIVER_DIR)/build/$(DRIVER_ARCH)
+MODULE_DIR ?= module
+MODULE_KO_PATH ?= $(MODULE_DIR)/switch_os.ko
 
 TEST_DIR ?= test
 TEST_ROOT_DIR ?= $(TEST_DIR)/qemu_root
+
+QEMU_FLAGS ?= 
 
 ifneq (,$(wildcard ./.env))
   include .env
   export
 endif
 
+ifndef PERSISTENT_VM
+	QEMU_FLAGS += -snapshot
+	FAT_DRIVE_PERM := ronly
+else
+	FAT_DRIVE_PERM := rw
+endif
+
 clean:
-	$(MAKE) -C $(DRIVER_DIR) clean \
-		DRIVER_BUILD_DIR=$(DRIVER_BUILD_DIR)
+	$(MAKE) -C $(MODULE_DIR) clean \
+		LINUX_VERSION=$(LINUX_VERSION)
 
 .PHONY: clean
 
-$(DRIVER_BUILD_DIR)/%.efi:
-	$(MAKE) -C $(DRIVER_DIR) \
-		ARCH=$(DRIVER_ARCH) \
-		DRIVER_BUILD_DIR=$(DRIVER_BUILD_DIR)
+$(MODULE_KO_PATH):
+	$(MAKE) -C $(MODULE_DIR) \
+		LINUX_VERSION=$(LINUX_VERSION)
 
-prepare-qemu: $(DRIVER_BUILD_DIR)/SwitchOS.efi
-	mkdir -p $(TEST_ROOT_DIR)/efi/boot/
-	cp -f $^ $(TEST_ROOT_DIR)/efi/boot/
+# This is required so we always try to compile the module.
+# Fortunately the linux's module build-system has a dependency list and will only recompile when needed.
+.PHONY: $(MODULE_KO_PATH)
 
+prepare-qemu: $(MODULE_KO_PATH)
+	cp -f $^ $(TEST_ROOT_DIR)/
+	
 qemu: prepare-qemu
 	$(QEMU) \
 		-m 4G \
 		-smp 2 \
 		-drive if=pflash,format=raw,file=$(OVMF) \
 		-hda $(LINUX_IMAGE) \
-		-drive format=raw,file=fat:ronly:$(TEST_ROOT_DIR) \
-		-boot menu=on \
+		-drive format=raw,file=fat:$(FAT_DRIVE_PERM):$(TEST_ROOT_DIR) \
 		-enable-kvm \
 		-vga virtio \
 		-net nic -net user,hostfwd=tcp::2222-:22 \
-		-snapshot
+		$(QEMU_FLAGS)
 
 .PHONY: prepare-qemu qemu
