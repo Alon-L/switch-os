@@ -1,5 +1,9 @@
 QEMU ?= qemu-system-x86_64
 
+CORE_DIR ?= core
+CORE_BIN ?= core.bin
+CORE_BIN_PATH ?= $(CORE_DIR)/$(CORE_BIN)
+
 MODULE_DIR ?= module
 MODULE_KO_PATH ?= $(MODULE_DIR)/switch_os.ko
 
@@ -23,18 +27,25 @@ endif
 clean:
 	$(MAKE) -C $(MODULE_DIR) clean \
 		LINUX_VERSION=$(LINUX_VERSION)
+	$(MAKE) -C $(CORE_DIR) clean \
+		CORE_BIN=$(CORE_BIN)
+	rm -rf $(TEST_ROOT_DIR)
 
 .PHONY: clean
+
+$(CORE_BIN_PATH):
+	$(MAKE) -C $(CORE_DIR) \
+		CORE_BIN=$(CORE_BIN)
 
 $(MODULE_KO_PATH):
 	$(MAKE) -C $(MODULE_DIR) \
 		LINUX_VERSION=$(LINUX_VERSION)
 
-# This is required so we always try to compile the module.
-# Fortunately the linux's module build-system has a dependency list and will only recompile when needed.
-.PHONY: $(MODULE_KO_PATH)
+# This is required so we always try to compile everything.
+.PHONY: $(CORE_BIN_PATH) $(MODULE_KO_PATH)
 
-prepare-qemu: $(MODULE_KO_PATH)
+prepare-qemu: $(CORE_BIN_PATH) $(MODULE_KO_PATH)
+	mkdir -p $(TEST_ROOT_DIR)
 	cp -f $^ $(TEST_ROOT_DIR)/
 	
 qemu: prepare-qemu
