@@ -1,18 +1,32 @@
 CC ?= gcc
+OBJCOPY ?= objcopy
 
 OBJS := core.o
 
-%.o: %.c
+OBJ_DIR := obj
+BUILD_DIR := build
+
+OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
+
+all: $(BUILD_DIR)/$(CORE_OBJ)
+
+$(BUILD_DIR):
+	mkdir -p $@
+
+$(OBJ_DIR):
+	mkdir -p $@
+
+$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
 	$(CC) -c $^ -o $@ -ffreestanding -O0 -Wall -Wextra
 
-$(CORE_BIN): $(OBJS)
+$(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) | $(BUILD_DIR)
 	$(CC) -o $@ -ffreestanding -O0 -nostdlib $^ -lgcc
 
-clean:
-	rm -rf $(OBJS)
-	rm -rf $(CORE_BIN)
+$(BUILD_DIR)/$(CORE_OBJ): $(BUILD_DIR)/core.bin | $(BUILD_DIR)
+	$(OBJCOPY) -I binary -O elf64-x86-64 $^ $@
 
-all: $(CORE_BIN)
+clean:
+	rm -rf $(OBJ_DIR)/*
+	rm -rf $(BUILD_DIR)/*
 	
 .PHONY: all clean
-.DEFAULT: all

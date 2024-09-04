@@ -1,4 +1,5 @@
 *.o
+*.o_shipped
 *.a
 *.so
 *.so.*

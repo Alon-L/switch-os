@@ -1,8 +1,8 @@
 QEMU ?= qemu-system-x86_64
 
 CORE_DIR ?= core
-CORE_BIN ?= core.bin
-CORE_BIN_PATH ?= $(CORE_DIR)/$(CORE_BIN)
+CORE_OBJ ?= core.o
+CORE_OBJ_PATH ?= $(CORE_DIR)/build/$(CORE_OBJ)
 
 MODULE_DIR ?= module
 MODULE_KO_PATH ?= $(MODULE_DIR)/switch_os.ko
@@ -28,23 +28,25 @@ clean:
 	$(MAKE) -C $(MODULE_DIR) clean \
 		LINUX_VERSION=$(LINUX_VERSION)
 	$(MAKE) -C $(CORE_DIR) clean \
-		CORE_BIN=$(CORE_BIN)
+		CORE_OBJ=$(CORE_OBJ)
 	rm -rf $(TEST_ROOT_DIR)
 
 .PHONY: clean
 
-$(CORE_BIN_PATH):
+$(CORE_OBJ_PATH):
 	$(MAKE) -C $(CORE_DIR) \
-		CORE_BIN=$(CORE_BIN)
+		CORE_OBJ=$(CORE_OBJ)
 
-$(MODULE_KO_PATH):
+$(MODULE_KO_PATH): $(CORE_OBJ_PATH)
+	cp $^ $(MODULE_DIR)/$(CORE_OBJ)_shipped
 	$(MAKE) -C $(MODULE_DIR) \
-		LINUX_VERSION=$(LINUX_VERSION)
+		LINUX_VERSION=$(LINUX_VERSION) \
+		CORE_OBJ=$(CORE_OBJ)
 
 # This is required so we always try to compile everything.
-.PHONY: $(CORE_BIN_PATH) $(MODULE_KO_PATH)
+.PHONY: $(CORE_OBJ_PATH) $(MODULE_KO_PATH)
 
-prepare-qemu: $(CORE_BIN_PATH) $(MODULE_KO_PATH)
+prepare-qemu: $(CORE_OBJ_PATH) $(MODULE_KO_PATH)
 	mkdir -p $(TEST_ROOT_DIR)
 	cp -f $^ $(TEST_ROOT_DIR)/
 	

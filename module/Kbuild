@@ -1,0 +1,2 @@
+obj-m += switch_os.o
+switch_os-y := $(CORE_OBJ)
