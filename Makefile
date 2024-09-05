@@ -29,6 +29,7 @@ clean:
 		LINUX_VERSION=$(LINUX_VERSION)
 	$(MAKE) -C $(CORE_DIR) clean \
 		CORE_OBJ=$(CORE_OBJ)
+	rm -rf $(MODULE_DIR)/$(CORE_OBJ)_shipped
 	rm -rf $(TEST_ROOT_DIR)
 
 .PHONY: clean

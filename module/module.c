@@ -3,9 +3,10 @@
 #include <linux/kernel.h>
 
 extern void* _binary_build_core_bin_start;
+extern size_t _binary_build_core_bin_size;
 
 int init_module(void) {
-  pr_info("Init switch_os kernel module %p\n", _binary_build_core_bin_start);
+  pr_info("Init switch_os kernel module %lx\n", (uintptr_t)_binary_build_core_bin_start);
 
   return 0; 
 } 

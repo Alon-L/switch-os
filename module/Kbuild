@@ -1,2 +1,2 @@
 obj-m += switch_os.o
-switch_os-y := $(CORE_OBJ)
+switch_os-y := module.o $(CORE_OBJ)
