@@ -47,7 +47,7 @@ $(MODULE_KO_PATH): $(CORE_OBJ_PATH)
 # This is required so we always try to compile everything.
 .PHONY: $(CORE_OBJ_PATH) $(MODULE_KO_PATH)
 
-prepare-qemu: $(CORE_OBJ_PATH) $(MODULE_KO_PATH)
+prepare-qemu: $(MODULE_KO_PATH)
 	mkdir -p $(TEST_ROOT_DIR)
 	cp -f $^ $(TEST_ROOT_DIR)/
 	
