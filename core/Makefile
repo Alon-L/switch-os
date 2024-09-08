@@ -17,10 +17,10 @@ $(OBJ_DIR):
 	mkdir -p $@
 
 $(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
-	$(CC) -c $^ -o $@ -ffreestanding -O0 -Wall -Wextra
+	$(CC) -I../include/ -c $^ -o $@ -ffreestanding -O0 -Wall -Wextra
 
 $(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) | $(BUILD_DIR)
-	$(CC) -o $@ -ffreestanding -O0 -nostdlib $^ -lgcc
+	$(CC) -I../include/ -T script.ld -o $@ -ffreestanding -O0 -nostdlib $^ -lgcc
 
 $(BUILD_DIR)/$(CORE_OBJ): $(BUILD_DIR)/core.bin | $(BUILD_DIR)
 	$(OBJCOPY) -I binary -O elf64-x86-64 $^ $@

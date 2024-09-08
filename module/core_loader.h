@@ -1,8 +1,7 @@
 #ifndef _CORE_LOADER
 #define _CORE_LOADER
 
-#define CORE_PHYS_ADDR (0x40000000)
-#define CORE_MAX_PHYS_MEM_SIZE (0x4000000)
+#include "core.h"
 
 /*
  * Maps core onto the physical address {CORE_PHYS_ADDR}, and gives it

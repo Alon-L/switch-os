@@ -1,2 +1,4 @@
 obj-m += switch_os.o
 switch_os-y := module.o core_loader.o $(CORE_OBJ)
+
+ccflags-y := -I$(src)/../include
