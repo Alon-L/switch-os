@@ -1,8 +1,8 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/printk.h>
-#include "core_loader.h"
 #include "core.h"
+#include "core_loader.h"
 
 typedef int (*core_start_t)(void);
 
@@ -16,7 +16,8 @@ int init_module(void) {
     return 1;
   }
 
-  pr_info("core res: %d\n", ((core_start_t)(g_core_addr + CORE_START_OFFSET))());
+  pr_info("core res: %d\n",
+          ((core_start_t)(g_core_addr + CORE_START_OFFSET))());
 
   return 0;
 }
