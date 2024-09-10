@@ -55,6 +55,7 @@ qemu: prepare-qemu
 	$(QEMU) \
 		-m 4G \
 		-smp 2 \
+		-serial mon:stdio \
 		-drive if=pflash,format=raw,file=$(OVMF) \
 		-hda $(LINUX_IMAGE) \
 		-drive format=raw,file=fat:$(FAT_DRIVE_PERM):$(TEST_ROOT_DIR) \
