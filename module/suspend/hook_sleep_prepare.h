@@ -2,8 +2,9 @@
 #define _HOOK_SLEEP_PREPARE
 
 #include <linux/kernel.h>
+#include "error.h"
 
-int hook_sleep_prepare(void);
+err_t hook_sleep_prepare(void);
 
 void unhook_sleep_prepare(void);
 

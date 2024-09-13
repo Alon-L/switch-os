@@ -4,7 +4,8 @@
 
 static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
                                  struct pt_regs* regs) {
-  pr_info("Inside handler\n");
+  TRACE("Inside handler\n");
+  //acpi_set_firmware_waking_vector(0, 0);
 
   return 0;
 }
@@ -19,14 +20,15 @@ static struct kretprobe g_kretprobe = {
 
 static bool g_is_hooked = false;
 
-int hook_sleep_prepare(void) {
-  if (register_kretprobe(&g_kretprobe) != 0) {
-    pr_err("Failed to place kretprobe on acpi_sleep_prepare\n");
-    return 1;
-  }
+err_t hook_sleep_prepare(void) {
+  err_t err = SUCCESS;
+
+  CHECK(register_kretprobe(&g_kretprobe) == 0);
 
   g_is_hooked = true;
-  return 0;
+
+cleanup:
+  return err;
 }
 
 void unhook_sleep_prepare(void) {
