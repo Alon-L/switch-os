@@ -8,7 +8,7 @@ typedef enum {
   ERROR = 1,
 } err_t;
 
-#define CHECK(expr) CHECK_TRACE((expr), "Error on %d:%d", __FILE__, __LINE__);
+#define CHECK(expr) CHECK_TRACE((expr), "Error on %s:%d", __FILE__, __LINE__);
 
 #define CHECK_RETHROW(expr)                                 \
   do {                                                      \
