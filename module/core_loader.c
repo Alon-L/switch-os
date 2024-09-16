@@ -4,13 +4,13 @@
 #include "linux/io.h"
 #include "linux/mm.h"
 
-extern char _binary_build_core_bin_start[];
-extern char _binary_build_core_bin_end[];
+extern char _core_bin_start[];
+extern char _core_bin_end[];
 
-#define CORE_START (_binary_build_core_bin_start)
+#define CORE_START (_core_bin_start)
 #define CORE_SIZE                          \
-  ((uintptr_t)_binary_build_core_bin_end - \
-   (uintptr_t)_binary_build_core_bin_start)
+  ((uintptr_t)_core_bin_end - \
+   (uintptr_t)_core_bin_start)
 
 /*
  * Sets a range of memory to be executable, by turning on the
@@ -53,7 +53,7 @@ err_t load_core(struct core_header** core_header_out) {
   // TODO: is a cache flush required on x86 after setting memory to exec?
   CHECK_RETHROW(set_memory_exec(core_addr, CORE_SIZE));
 
-  core_header = (struct core_header*)(core_addr + CORE_HEADER_OFFSET);
+  core_header = (struct core_header*)core_addr;
   CHECK(is_core_header_magic_valid(core_header));
 
   *core_header_out = core_header;
@@ -63,5 +63,5 @@ cleanup:
 }
 
 void unload_core(struct core_header* core_header) {
-  iounmap(core_header_get_loaded_addr(core_header));
+  iounmap(core_header);
 }

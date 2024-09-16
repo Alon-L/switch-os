@@ -2,7 +2,7 @@
 
 SECTIONS
 {
-  . = CORE_HEADER_OFFSET;
+  . = CORE_PHYS_ADDR;
 
   .data : {
     core_header = .;

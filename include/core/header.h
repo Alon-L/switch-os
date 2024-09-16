@@ -21,10 +21,6 @@ static inline core_start_t core_header_get_start(
   return (core_start_t)((void*)core_header + core_header->start_offset);
 }
 
-static inline void* core_header_get_loaded_addr(struct core_header* core_header) {
-  return (void*)core_header - CORE_HEADER_OFFSET;
-}
-
 static inline bool is_core_header_magic_valid(struct core_header* core_header) {
   return core_header->magic == CORE_HEADER_MAGIC;
 }
