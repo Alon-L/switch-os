@@ -2,16 +2,15 @@
 #include <linux/kprobes.h>
 #include <linux/module.h>
 #include <linux/printk.h>
-#include "core.h"
+#include "core/header.h"
 #include "core_loader.h"
 #include "error.h"
 #include "suspend/hook_sleep_prepare.h"
 #include "trace.h"
 
-typedef int (*core_start_t)(void);
-void* g_core_addr = NULL;
+struct core_header* g_core_header = NULL;
 
-void trace(char *fmt, ...) {
+void trace(char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   vprintk(fmt, args);
@@ -20,13 +19,14 @@ void trace(char *fmt, ...) {
 
 int init_module(void) {
   err_t err = SUCCESS;
+  core_start_t core_start;
 
   TRACE("Init switch_os kernel module\n");
 
-  CHECK_RETHROW(load_core(&g_core_addr));
+  CHECK_RETHROW(load_core(&g_core_header));
+  core_start = core_header_get_start(g_core_header);
 
-  TRACE("core res: %d\n",
-          ((core_start_t)(g_core_addr + CORE_START_OFFSET))());
+  TRACE("core res: %d\n", core_start());
 
   CHECK_RETHROW(hook_sleep_prepare());
 
@@ -39,8 +39,8 @@ cleanup:
 void cleanup_module(void) {
   TRACE("Unloading switch_os kernel module\n");
 
-  if (g_core_addr != NULL) {
-    unload_core(g_core_addr);
+  if (g_core_header != NULL) {
+    unload_core(g_core_header);
   }
   if (is_sleep_prepare_hooked()) {
     unhook_sleep_prepare();

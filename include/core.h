@@ -1,8 +1,0 @@
-#ifndef _INCLUDE_CORE
-#define _INCLUDE_CORE
-
-#define CORE_START_OFFSET (0x1000)
-#define CORE_PHYS_ADDR (0x40000000)
-#define CORE_MAX_PHYS_MEM_SIZE (0x4000000)
-
-#endif

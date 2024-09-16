@@ -1,4 +1,6 @@
 #include "core_loader.h"
+#include "core/consts.h"
+#include "core/header.h"
 #include "linux/io.h"
 #include "linux/mm.h"
 
@@ -33,9 +35,10 @@ cleanup:
   return err;
 }
 
-err_t load_core(void** core_addr_out) {
+err_t load_core(struct core_header** core_header_out) {
   err_t err = SUCCESS;
   void* core_addr;
+  struct core_header* core_header;
 
   CHECK_TRACE(CORE_SIZE <= CORE_MAX_PHYS_MEM_SIZE,
               "Not enough reserved RAM for core\n");
@@ -50,12 +53,15 @@ err_t load_core(void** core_addr_out) {
   // TODO: is a cache flush required on x86 after setting memory to exec?
   CHECK_RETHROW(set_memory_exec(core_addr, CORE_SIZE));
 
-  *core_addr_out = core_addr;
+  core_header = (struct core_header*)(core_addr + CORE_HEADER_OFFSET);
+  CHECK(is_core_header_magic_valid(core_header));
+
+  *core_header_out = core_header;
 
 cleanup:
   return err;
 }
 
-void unload_core(void* core_addr) {
-  iounmap(core_addr);
+void unload_core(struct core_header* core_header) {
+  iounmap(core_header_get_loaded_addr(core_header));
 }

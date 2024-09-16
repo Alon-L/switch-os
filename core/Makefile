@@ -16,11 +16,14 @@ $(BUILD_DIR):
 $(OBJ_DIR):
 	mkdir -p $@
 
-$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
-	$(CC) -I../include/ -c $^ -o $@ -ffreestanding -O0 -Wall -Wextra
+script.ld.gen: script.ld
+	$(CC) -E -P -x c -I../include/ -o $@ $^
 
-$(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) | $(BUILD_DIR)
-	$(CC) -I../include/ -T script.ld -o $@ -ffreestanding -O0 -nostdlib $^ -lgcc
+$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
+	$(CC) -I../include/ -c $^ -o $@ -ffreestanding -O0 -Wall -Wextra -DCORE
+
+$(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) script.ld.gen | $(BUILD_DIR)
+	$(CC) -I../include/ -T script.ld.gen -o $@ -ffreestanding -O0 -nostdlib $(OBJS_IN_OBJ_DIR) -lgcc
 
 $(BUILD_DIR)/$(CORE_OBJ): $(BUILD_DIR)/core.bin | $(BUILD_DIR)
 	$(OBJCOPY) -I binary -O elf64-x86-64 $^ $@
@@ -28,5 +31,6 @@ $(BUILD_DIR)/$(CORE_OBJ): $(BUILD_DIR)/core.bin | $(BUILD_DIR)
 clean:
 	rm -rf $(OBJ_DIR)/*
 	rm -rf $(BUILD_DIR)/*
+	rm -rf script.ld.gen
 	
 .PHONY: all clean
