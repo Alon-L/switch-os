@@ -9,6 +9,7 @@ SECTIONS
   
     // Must match `struct core_header` in `core/header.h`.
     LONG(CORE_HEADER_MAGIC);
+    LONG(0);
     LONG(_start - core_header);
   }
 

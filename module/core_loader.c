@@ -8,9 +8,7 @@ extern char _core_bin_start[];
 extern char _core_bin_end[];
 
 #define CORE_START (_core_bin_start)
-#define CORE_SIZE                          \
-  ((uintptr_t)_core_bin_end - \
-   (uintptr_t)_core_bin_start)
+#define CORE_SIZE ((uintptr_t)_core_bin_end - (uintptr_t)_core_bin_start)
 
 /*
  * Sets a range of memory to be executable, by turning on the
