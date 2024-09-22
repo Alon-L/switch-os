@@ -1,0 +1,4 @@
+#ifndef _REALMODE_WAKEUP_HEADER
+#define _REALMODE_WAKEUP_HEADER
+
+#endif

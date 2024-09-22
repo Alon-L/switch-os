@@ -9,11 +9,19 @@ SECTIONS
   
     // Must match `struct core_header` in `core/header.h`.
     LONG(CORE_HEADER_MAGIC);
+    // TODO: add symbol for original waking vector
     LONG(0);
-    LONG(_start - core_header);
+    SHORT(CORE_REALMODE_PHYS_ADDR);
+
+    *(.data*);
   }
 
   .text : {
-    *(_start);
+    *(.text*);
   }
+	
+	. = ALIGN(128);
+	.bss : {
+		*(.bss*);
+	}
 }

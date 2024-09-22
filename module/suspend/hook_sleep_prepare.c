@@ -45,7 +45,7 @@ cleanup:
 /*
  * Called right when `acpi_sleep_prepare` ends.
  * `acpi_sleep_prepare` sets the ACPI waking vector. We access it by using `get_acpi_waking_vector`,
- * pass it to core, and override the waking vector to core's waking vector.
+ * pass it to core, and override the waking vector to core's wakeup procedure. 
  */
 static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
                                  struct pt_regs* regs) {
@@ -60,8 +60,8 @@ static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
 
   core_header_set_original_waking_vector(g_core_header, waking_vector);
 
-  core_waking_vector = core_header_get_core_waking_vector_addr(g_core_header);
-  acpi_set_firmware_waking_vector(core_waking_vector, 0);
+  // core_waking_vector = core_header_get_wakeup_addr(g_core_header);
+  // acpi_set_firmware_waking_vector(core_waking_vector, 0);
 
 cleanup:
   return 0;

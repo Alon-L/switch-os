@@ -7,7 +7,7 @@
 /*
  * `acpi_sleep_prepare` is called right before the kernel enters suspend mode,
  * and sets the waking vector. Therefore, we have to interrupt it and override the
- * waking vector to core's waking vector.
+ * waking vector to core's wakeup procedure. 
  */
 err_t hook_sleep_prepare(void);
 

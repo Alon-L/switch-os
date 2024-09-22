@@ -4,11 +4,21 @@
 #include "linux/io.h"
 #include "linux/mm.h"
 
-extern char _core_bin_start[];
-extern char _core_bin_end[];
+extern char _binary_build_core_bin_trimmed_start[];
+extern char _binary_build_core_bin_trimmed_end[];
 
-#define CORE_START (_core_bin_start)
-#define CORE_SIZE ((uintptr_t)_core_bin_end - (uintptr_t)_core_bin_start)
+extern char _binary_build_realmode_bin_trimmed_start[];
+extern char _binary_build_realmode_bin_trimmed_end[];
+
+#define CORE_START (_binary_build_core_bin_trimmed_start)
+#define CORE_SIZE                                  \
+  ((uintptr_t)_binary_build_core_bin_trimmed_end - \
+   (uintptr_t)_binary_build_core_bin_trimmed_start)
+
+#define CORE_REALMODE_START (_binary_build_realmode_bin_trimmed_start)
+#define CORE_REALMODE_SIZE                             \
+  ((uintptr_t)_binary_build_realmode_bin_trimmed_end - \
+   (uintptr_t)_binary_build_realmode_bin_trimmed_start)
 
 /*
  * Sets a range of memory to be executable, by turning on the
@@ -33,6 +43,34 @@ cleanup:
   return err;
 }
 
+/*
+ * Allocates executable physical memory [`phys_addr`, `phys_addr` + `size`) and copies
+ * `buf` into it.
+ * Sets `virt_addr_out` (if not NULL) to the virtual address that maps `phys_addr`.
+ */
+static err_t load_exec_phys_memory(uintptr_t phys_addr, void* buf, size_t size,
+                                   void** virt_addr_out) {
+  err_t err = SUCCESS;
+  void* virt_addr = NULL;
+
+  // `ioremap` is used to map specific physical memory onto virtual memory.
+  virt_addr = ioremap(phys_addr, size);
+  CHECK_TRACE(virt_addr != NULL, "Failed to map physical addr %lx\n",
+              (uintptr_t)phys_addr);
+
+  memcpy(virt_addr, buf, size);
+
+  // TODO: is a cache flush required on x86 after setting memory to exec?
+  CHECK_RETHROW(set_memory_exec(virt_addr, size));
+
+  if (virt_addr_out) {
+    *virt_addr_out = virt_addr;
+  }
+
+cleanup:
+  return err;
+}
+
 err_t load_core(struct core_header** core_header_out) {
   err_t err = SUCCESS;
   void* core_addr;
@@ -40,16 +78,13 @@ err_t load_core(struct core_header** core_header_out) {
 
   CHECK_TRACE(CORE_SIZE <= CORE_MAX_PHYS_MEM_SIZE,
               "Not enough reserved RAM for core\n");
+  CHECK_TRACE(CORE_REALMODE_SIZE <= CORE_MAX_REALMODE_PHYS_MEM_SIZE,
+              "Not enough reserved RAM for core realmode\n");
 
-  // {ioremap} is used to map specific physical memory onto virtual memory.
-  core_addr = ioremap(CORE_PHYS_ADDR, CORE_SIZE);
-  CHECK_TRACE(core_addr != NULL, "Failed to map physical addr %lx\n",
-              (uintptr_t)CORE_PHYS_ADDR);
-
-  memcpy(core_addr, CORE_START, CORE_SIZE);
-
-  // TODO: is a cache flush required on x86 after setting memory to exec?
-  CHECK_RETHROW(set_memory_exec(core_addr, CORE_SIZE));
+  CHECK_RETHROW(
+      load_exec_phys_memory(CORE_PHYS_ADDR, CORE_START, CORE_SIZE, &core_addr));
+  CHECK_RETHROW(load_exec_phys_memory(
+      CORE_REALMODE_PHYS_ADDR, CORE_REALMODE_START, CORE_REALMODE_SIZE, NULL));
 
   core_header = (struct core_header*)core_addr;
   CHECK(is_core_header_magic_valid(core_header));

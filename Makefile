@@ -1,8 +1,6 @@
 QEMU ?= qemu-system-x86_64
 
 CORE_DIR ?= core
-CORE_OBJ ?= core.o
-CORE_OBJ_PATH ?= $(CORE_DIR)/build/$(CORE_OBJ)
 
 MODULE_DIR ?= module
 MODULE_KO_PATH ?= $(MODULE_DIR)/switch_os.ko
@@ -25,27 +23,24 @@ else
 endif
 
 clean:
-	$(MAKE) -C $(MODULE_DIR) clean \
-		LINUX_VERSION=$(LINUX_VERSION)
-	$(MAKE) -C $(CORE_DIR) clean \
-		CORE_OBJ=$(CORE_OBJ)
-	rm -rf $(MODULE_DIR)/$(CORE_OBJ)_shipped
+	$(MAKE) -C $(MODULE_DIR) clean
+	$(MAKE) -C $(CORE_DIR) clean
+	rm -rf $(MODULE_DIR)/*_shipped
 	rm -rf $(TEST_ROOT_DIR)
 
 .PHONY: clean
 
-$(CORE_OBJ_PATH):
-	$(MAKE) -C $(CORE_DIR) \
-		CORE_OBJ=$(CORE_OBJ)
+$(MODULE_DIR)/%.o_shipped: $(CORE_DIR)/build/%.o
+	cp $^ $@
 
-$(MODULE_KO_PATH): $(CORE_OBJ_PATH)
-	cp $^ $(MODULE_DIR)/$(CORE_OBJ)_shipped
-	$(MAKE) -C $(MODULE_DIR) \
-		LINUX_VERSION=$(LINUX_VERSION) \
-		CORE_OBJ=$(CORE_OBJ)
+$(CORE_DIR)/build/core_final.o:
+	$(MAKE) -C $(CORE_DIR)
+
+$(MODULE_KO_PATH): $(MODULE_DIR)/core_final.o_shipped
+	$(MAKE) -C $(MODULE_DIR)
 
 # This is required so we always try to compile everything.
-.PHONY: $(CORE_OBJ_PATH) $(MODULE_KO_PATH)
+.PHONY: $(CORE_DIR)/build/core_final.o $(MODULE_KO_PATH)
 
 prepare-qemu: $(MODULE_KO_PATH)
 	mkdir -p $(TEST_ROOT_DIR)

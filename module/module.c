@@ -19,14 +19,10 @@ void trace(char* fmt, ...) {
 
 int init_module(void) {
   err_t err = SUCCESS;
-  core_start_t core_start;
 
   TRACE("Init switch_os kernel module\n");
 
   CHECK_RETHROW(load_core(&g_core_header));
-  core_start = core_header_get_start(g_core_header);
-
-  TRACE("core res: %d\n", core_start());
 
   CHECK_RETHROW(hook_sleep_prepare());
 
