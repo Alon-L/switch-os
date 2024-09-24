@@ -48,6 +48,8 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.bin.trimmed | $(BUILD_DIR)
 $(BUILD_DIR)/core_final.o: $(BUILD_DIR)/core.o $(BUILD_DIR)/rm.o $(BUILD_DIR)/pm.o
 	$(LD) -r $^ -o $@ 
 
+.SECONDARY:
+
 # ---- UTILS -----
 
 $(BUILD_DIR):
