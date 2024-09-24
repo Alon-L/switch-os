@@ -29,7 +29,7 @@ int init_module(void) {
   TRACE("Hooked acpi_sleep_prepare\n");
 
 cleanup:
-  return !IS_SUCCESS(err);
+  return IS_SUCCESS(err) ? 0 : -1;
 }
 
 void cleanup_module(void) {
