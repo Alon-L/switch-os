@@ -11,7 +11,7 @@ SECTIONS
     LONG(CORE_HEADER_MAGIC);
     // TODO: add symbol for original waking vector
     LONG(0);
-    SHORT(CORE_REALMODE_PHYS_ADDR);
+    SHORT(CORE_RM_PHYS_ADDR);
 
     *(.data*);
   }

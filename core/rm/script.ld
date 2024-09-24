@@ -4,7 +4,7 @@ OUTPUT_ARCH(i386)
 
 SECTIONS
 {
-  . = CORE_REALMODE_PHYS_ADDR;
+  . = CORE_RM_PHYS_ADDR;
 
   .text : {
     *(.text*);

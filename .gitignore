@@ -29,7 +29,6 @@ doc/*
 
 .*project
 bin
-\
 .
 apdu_out
 thoughts.md

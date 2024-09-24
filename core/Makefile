@@ -9,7 +9,7 @@ LD_SCRIPT_FLAGS := -E -P -x c -I../include/
 OBJ_DIR := obj
 BUILD_DIR := build
 
-include realmode/Makefile
+include rm/Makefile
 
 OBJS := core.o
 OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
@@ -41,7 +41,7 @@ $(BUILD_DIR)/%.bin.trimmed: $(BUILD_DIR)/%.bin | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.bin.trimmed | $(BUILD_DIR)
 	$(OBJCOPY) -I binary -O elf64-x86-64 $^ $@
 
-$(BUILD_DIR)/core_final.o: $(BUILD_DIR)/core.o $(BUILD_DIR)/realmode.o
+$(BUILD_DIR)/core_final.o: $(BUILD_DIR)/core.o $(BUILD_DIR)/rm.o
 	$(LD) -r $^ -o $@ 
 
 # ---- UTILS -----
