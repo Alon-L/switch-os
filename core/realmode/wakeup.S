@@ -3,7 +3,6 @@
   .intel_syntax noprefix
 
   .data
-
   .balign 16
 gdtr:
   // Null Descriptor
@@ -39,12 +38,12 @@ core_wakeup:
 	mov gs, ax
 	
   // Reset eflags
-  mov	esp, dword ptr[rm_stack_end]
+  mov	esp, cs:rm_stack_end
   push 0
 	popf
  
   // Enter protected mode
-  lgdt [gdtr]
+  lgdt [cs:gdtr]
   mov eax, cr0 
   or al, 1 // Set PE bit
   mov cr0, eax
