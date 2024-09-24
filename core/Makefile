@@ -52,5 +52,5 @@ $(BUILD_DIR):
 $(OBJ_DIR):
 	mkdir -p $@
 
-script.ld.gen: script.ld
+%.ld.gen: %.ld
 	$(CC) $(LD_SCRIPT_FLAGS) -o $@ $^ 
