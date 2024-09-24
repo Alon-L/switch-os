@@ -60,7 +60,7 @@ pm:
   mov fs, cx
   mov gs, cx
 
-  // Continue in our PM C code to prepare the page table.
+  // Continue in our PM stub.
   jmp CORE_PM_PHYS_ADDR
 
   .bss

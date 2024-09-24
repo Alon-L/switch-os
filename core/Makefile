@@ -2,14 +2,17 @@ CC ?= gcc
 LD ?= ld
 OBJCOPY ?= objcopy
 
-CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -DCORE
-LDFLAGS := -ffreestanding -static -O0 -nostdlib -lgcc
+CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -DCORE -fno-pic
+LDFLAGS := -ffreestanding -static -O0 -nostdlib
 LD_SCRIPT_FLAGS := -E -P -x c -I../include/ 
 
 OBJ_DIR := obj
 BUILD_DIR := build
 
 include rm/Makefile
+include pm/Makefile
+
+LDFLAGS += -lgcc
 
 OBJS := core.o
 OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
@@ -22,7 +25,8 @@ all: $(BUILD_DIR)/core_final.o
 clean:
 	rm -rf $(OBJ_DIR)/*
 	rm -rf $(BUILD_DIR)/*
-	rm -rf script.ld.gen
+	rm -rf */*.ld.gen
+	rm -rf *.ld.gen
 	
 .PHONY: all clean
 
@@ -41,7 +45,7 @@ $(BUILD_DIR)/%.bin.trimmed: $(BUILD_DIR)/%.bin | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.bin.trimmed | $(BUILD_DIR)
 	$(OBJCOPY) -I binary -O elf64-x86-64 $^ $@
 
-$(BUILD_DIR)/core_final.o: $(BUILD_DIR)/core.o $(BUILD_DIR)/rm.o
+$(BUILD_DIR)/core_final.o: $(BUILD_DIR)/core.o $(BUILD_DIR)/rm.o $(BUILD_DIR)/pm.o
 	$(LD) -r $^ -o $@ 
 
 # ---- UTILS -----

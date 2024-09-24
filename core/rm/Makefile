@@ -1,7 +1,7 @@
 RM_OBJS := wakeup.o
 
-RM_CFLAGS = $(CFLAGS) -m16
-RM_LDFLAGS := -ffreestanding -static -O0 -nostdlib
+RM_CFLAGS = $(CFLAGS) -m16 -march=i386
+RM_LDFLAGS := $(LDFLAGS)
 
 RM_OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/rm/,$(RM_OBJS))
 
