@@ -10,6 +10,9 @@ extern char _binary_build_core_bin_trimmed_end[];
 extern char _binary_build_rm_bin_trimmed_start[];
 extern char _binary_build_rm_bin_trimmed_end[];
 
+extern char _binary_build_pm_bin_trimmed_start[];
+extern char _binary_build_pm_bin_trimmed_end[];
+
 #define CORE_START (_binary_build_core_bin_trimmed_start)
 #define CORE_SIZE                                  \
   ((uintptr_t)_binary_build_core_bin_trimmed_end - \
@@ -19,6 +22,11 @@ extern char _binary_build_rm_bin_trimmed_end[];
 #define CORE_RM_SIZE                             \
   ((uintptr_t)_binary_build_rm_bin_trimmed_end - \
    (uintptr_t)_binary_build_rm_bin_trimmed_start)
+
+#define CORE_PM_START (_binary_build_pm_bin_trimmed_start)
+#define CORE_PM_SIZE                             \
+  ((uintptr_t)_binary_build_pm_bin_trimmed_end - \
+   (uintptr_t)_binary_build_pm_bin_trimmed_start)
 
 /*
  * Sets a range of memory to be executable, by turning on the
@@ -80,11 +88,15 @@ err_t load_core(struct core_header** core_header_out) {
               "Not enough reserved RAM for core\n");
   CHECK_TRACE(CORE_RM_SIZE <= CORE_MAX_RM_PHYS_MEM_SIZE,
               "Not enough reserved RAM for core rm\n");
+  CHECK_TRACE(CORE_PM_SIZE <= CORE_MAX_PM_PHYS_MEM_SIZE,
+              "Not enough reserved RAM for core pm\n");
 
   CHECK_RETHROW(
       load_exec_phys_memory(CORE_PHYS_ADDR, CORE_START, CORE_SIZE, &core_addr));
-  CHECK_RETHROW(load_exec_phys_memory(
-      CORE_RM_PHYS_ADDR, CORE_RM_START, CORE_RM_SIZE, NULL));
+  CHECK_RETHROW(load_exec_phys_memory(CORE_RM_PHYS_ADDR, CORE_RM_START,
+                                      CORE_RM_SIZE, NULL));
+  CHECK_RETHROW(load_exec_phys_memory(CORE_PM_PHYS_ADDR, CORE_PM_START,
+                                      CORE_PM_SIZE, NULL));
 
   core_header = (struct core_header*)core_addr;
   CHECK(is_core_header_magic_valid(core_header));
