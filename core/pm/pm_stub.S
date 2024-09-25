@@ -7,6 +7,6 @@ pm_stub:
   // The short RM assembly already prepares the GDT and loaded the segments.
 
   // Setup the stack and jump to the C code
-  mov	esp, cs:pm_stack_end
+  mov	esp, pm_stack_end
 
   jmp main_pm 

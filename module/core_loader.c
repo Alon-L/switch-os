@@ -91,6 +91,7 @@ err_t load_core(struct core_header** core_header_out) {
   CHECK_TRACE(CORE_PM_SIZE <= CORE_MAX_PM_PHYS_MEM_SIZE,
               "Not enough reserved RAM for core pm\n");
 
+  // TODO: Why do I care whether this memory is executable? This paging won't be active when I run....
   CHECK_RETHROW(
       load_exec_phys_memory(CORE_PHYS_ADDR, CORE_START, CORE_SIZE, &core_addr));
   CHECK_RETHROW(load_exec_phys_memory(CORE_RM_PHYS_ADDR, CORE_RM_START,

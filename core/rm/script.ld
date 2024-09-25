@@ -11,12 +11,10 @@ SECTIONS
     *(.text*);
   }
 	
-	. = ALIGN(128);
 	.bss : {
 		*(.bss*);
 	}
 	
-  . = ALIGN(128);
 	.data : {
 		*(.data*);
 	}

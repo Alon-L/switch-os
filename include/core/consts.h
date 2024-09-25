@@ -14,4 +14,6 @@
 
 #define CORE_MAGIC (0x12345678)
 
+#define CORE_WAKEUP_PHYS_ADDR (CORE_RM_PHYS_ADDR)
+
 #endif

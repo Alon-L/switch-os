@@ -51,7 +51,6 @@ static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
                                  struct pt_regs* regs) {
   err_t err = SUCCESS;
   uint32_t waking_vector;
-  uint16_t core_waking_vector;
 
   CHECK_RETHROW(get_acpi_waking_vector(&waking_vector));
   TRACE("Original waking vector %x\n", waking_vector);
@@ -60,8 +59,7 @@ static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
 
   core_header_set_original_waking_vector(g_core_header, waking_vector);
 
-  // core_waking_vector = core_header_get_wakeup_addr(g_core_header);
-  // acpi_set_firmware_waking_vector(core_waking_vector, 0);
+  acpi_set_firmware_waking_vector(CORE_WAKEUP_PHYS_ADDR, 0);
 
 cleanup:
   return 0;
