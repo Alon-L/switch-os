@@ -10,12 +10,12 @@ SECTIONS
     *(core_wakeup);
     *(.text*);
   }
-	
-	.bss : {
-		*(.bss*);
-	}
-	
-	.data : {
-		*(.data*);
-	}
+
+  .bss : {
+    *(.bss*);
+  }
+
+  .data : {
+    *(.data*);
+  }
 }

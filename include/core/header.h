@@ -15,7 +15,6 @@ typedef int (*core_start_t)(void);
 struct core_header {
   const uint32_t magic;
   uint32_t original_waking_vector;
-  // TODO: Add end magic to validate core isn't truncated
 } __attribute__((packed));
 
 static inline void core_header_set_original_waking_vector(

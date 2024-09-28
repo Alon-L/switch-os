@@ -22,6 +22,10 @@ else
 	FAT_DRIVE_PERM := rw
 endif
 
+ifdef GDB
+	QEMU_FLAGS += -s -S
+endif
+
 clean:
 	$(MAKE) -C $(MODULE_DIR) clean
 	$(MAKE) -C $(CORE_DIR) clean
@@ -48,8 +52,7 @@ prepare-qemu: $(MODULE_KO_PATH)
 	
 qemu: prepare-qemu
 	$(QEMU) \
-		-m 4G \
-		-smp 2 \
+		-m 6G \
 		-serial mon:stdio \
 		-drive if=pflash,format=raw,file=$(OVMF) \
 		-hda $(LINUX_IMAGE) \
