@@ -7,7 +7,7 @@ SECTIONS
   . = CORE_RM_PHYS_ADDR;
 
   .text : {
-    *(core_wakeup);
+    *(.text.core_wakeup);
     *(.text*);
   }
 

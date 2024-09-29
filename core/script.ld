@@ -10,7 +10,7 @@ SECTIONS
 
   . = CORE_MAIN_PHYS_ADDR;
   .text : {
-    *(core_main)
+    *(.text.core_main)
     *(.text*);
   }
 

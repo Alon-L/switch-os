@@ -13,7 +13,7 @@ SECTIONS
   . = CORE_PM_PHYS_ADDR;
 
   .text : {
-    *(pm_stub);
+    *(.text.pm_stub);
     *(.text*);
   }
 

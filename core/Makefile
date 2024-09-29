@@ -2,7 +2,7 @@ CC ?= gcc
 LD ?= ld
 OBJCOPY ?= objcopy
 
-CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -Werror -DCORE -fno-pic -masm=intel
+CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -Werror -DCORE -fno-pic -masm=intel -ffunction-sections 
 LDFLAGS := -ffreestanding -static -O0 -nostdlib
 LD_SCRIPT_FLAGS := -E -P -x c -I../include/ 
 
