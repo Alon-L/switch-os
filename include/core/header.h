@@ -17,11 +17,6 @@ struct core_header {
   uint32_t original_waking_vector;
 } __attribute__((packed));
 
-static inline void core_header_set_original_waking_vector(
-    struct core_header* core_header, uint32_t original_waking_vector) {
-  core_header->original_waking_vector = original_waking_vector;
-}
-
 static inline bool is_core_header_magic_valid(struct core_header* core_header) {
   return core_header->magic == CORE_HEADER_MAGIC;
 }

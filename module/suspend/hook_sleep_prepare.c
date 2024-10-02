@@ -57,7 +57,7 @@ static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
 
   CHECK(g_core_header != NULL);
 
-  core_header_set_original_waking_vector(g_core_header, waking_vector);
+  g_core_header->original_waking_vector = waking_vector;
 
   acpi_set_firmware_waking_vector(CORE_WAKEUP_PHYS_ADDR, 0);
 
