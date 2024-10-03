@@ -2,7 +2,7 @@ CC ?= gcc
 LD ?= ld
 OBJCOPY ?= objcopy
 
-CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -Werror -DCORE -fno-pic -masm=intel -ffunction-sections 
+CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -Werror -DCORE -fno-pic -masm=intel -ffunction-sections -fno-stack-protector
 LDFLAGS := -ffreestanding -static -O0 -nostdlib
 LD_SCRIPT_FLAGS := -E -P -x c -I../include/ 
 
@@ -15,9 +15,21 @@ include pm/Makefile
 LDFLAGS += -lgcc
 
 OBJS := core.o
+
+# UACPI
+UACPI_SOURCES := $(wildcard uacpi/source/*.c) uacpi_glue.o
+UACPI_HEADERS_DIR := uacpi/include/
+OBJS += $(UACPI_SOURCES:.c=.o) 
+CFLAGS += -I$(UACPI_HEADERS_DIR)
+LDFLAGS += -I$(UACPI_HEADERS_DIR)
+
 OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
 TRIM_COUNT := 4096
+
+ifdef DEBUG
+	CFLAGS += -g
+endif
 
 all: $(BUILD_DIR)/core_final.o
 .DEFAULT_GOAL := all
