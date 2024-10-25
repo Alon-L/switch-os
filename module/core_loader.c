@@ -81,15 +81,26 @@ cleanup:
   return err;
 }
 
+static err_t find_acpi_rsdp(uint64_t* rsdp_out) {
+  err_t err = SUCCESS;
+
+  // Taken from the kernel's `cpi_os_get_root_pointer`
+  CHECK(efi_enabled(EFI_CONFIG_TABLES));
+  CHECK(efi.acpi20 != EFI_INVALID_TABLE_ADDR);
+
+  *rsdp_out = efi.acpi20;
+
+cleanup:
+  return err;
+}
+
 static err_t fill_core_header(struct core_header* core_header) {
   err_t err = SUCCESS;
 
-  TRACE("is enabled? %d", efi_enabled(EFI_CONFIG_TABLES));
-  // This is 2.0 I think
-  TRACE("acpi20: %lx", efi.acpi20);
-  TRACE("acpi: %lx", efi.acpi);
-  // TODO: This works. The 2.0 rsdp exists. Use it. Look at
-  // `acpi_os_get_root_pointer`
+  CHECK_RETHROW(find_acpi_rsdp(&core_header->rsdp));
+
+  // NOTE: `core_header.original_waking_vector` has to be filled from within the
+  // sleep prepare hook in `my_acpi_sleep_prepare`.
 
 cleanup:
   return err;
