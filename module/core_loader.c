@@ -1,8 +1,10 @@
 #include "core_loader.h"
-#include "core/consts.h"
-#include "core/header.h"
-#include "linux/io.h"
-#include "linux/mm.h"
+#include <core/consts.h>
+#include <core/header.h>
+#include <error.h>
+#include <linux/efi.h>
+#include <linux/io.h>
+#include <linux/mm.h>
 
 extern char _binary_build_core_bin_trimmed_start[];
 extern char _binary_build_core_bin_trimmed_end[];
@@ -79,6 +81,20 @@ cleanup:
   return err;
 }
 
+static err_t fill_core_header(struct core_header* core_header) {
+  err_t err = SUCCESS;
+
+  TRACE("is enabled? %d", efi_enabled(EFI_CONFIG_TABLES));
+  // This is 2.0 I think
+  TRACE("acpi20: %lx", efi.acpi20);
+  TRACE("acpi: %lx", efi.acpi);
+  // TODO: This works. The 2.0 rsdp exists. Use it. Look at
+  // `acpi_os_get_root_pointer`
+
+cleanup:
+  return err;
+}
+
 err_t load_core(struct core_header** core_header_out) {
   err_t err = SUCCESS;
   void* core_addr;
@@ -101,6 +117,8 @@ err_t load_core(struct core_header** core_header_out) {
 
   core_header = (struct core_header*)core_addr;
   CHECK(is_core_header_magic_valid(core_header));
+
+  CHECK_RETHROW(fill_core_header(core_header));
 
   *core_header_out = core_header;
 

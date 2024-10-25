@@ -15,6 +15,7 @@ typedef int (*core_start_t)(void);
 struct core_header {
   const uint32_t magic;
   uint32_t original_waking_vector;
+  uint64_t rsdp;
 } __attribute__((packed));
 
 static inline bool is_core_header_magic_valid(struct core_header* core_header) {

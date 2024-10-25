@@ -55,21 +55,21 @@ void uacpi_kernel_io_unmap(uacpi_handle handle) {
 }
 
 uacpi_status uacpi_kernel_io_read(
-    uacpi_handle, uacpi_size offset,
+    uacpi_handle handle, uacpi_size offset,
     uacpi_u8 byte_width, uacpi_u64 *value
 ) {
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
 uacpi_status uacpi_kernel_io_write(
-    uacpi_handle, uacpi_size offset,
+    uacpi_handle handle, uacpi_size offset,
     uacpi_u8 byte_width, uacpi_u64 value
 ) {
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
 void *uacpi_kernel_map(uacpi_phys_addr addr, uacpi_size len) {
-  return NULL;
+  return (void*)addr;
 }
 
 void uacpi_kernel_unmap(void *addr, uacpi_size len) {
