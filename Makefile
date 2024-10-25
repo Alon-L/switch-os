@@ -17,6 +17,12 @@ endif
 
 ifdef GDB
 	QEMU_FLAGS += -s -S
+	CORE_DEBUG := 1
+endif
+
+ifdef QEMU_DEBUG
+	QEMU_FLAGS += -debugcon file:/var/log/switch-os.log 
+	DEBUG := 1
 endif
 
 clean:

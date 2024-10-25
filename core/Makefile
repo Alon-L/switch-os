@@ -27,8 +27,12 @@ OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
 TRIM_COUNT := 4096
 
-ifdef DEBUG
+ifdef CORE_DEBUG
 	CFLAGS += -g
+endif
+
+ifdef DEBUG 
+	CFLAGS += -D DEBUG
 endif
 
 all: $(BUILD_DIR)/core_final.o
