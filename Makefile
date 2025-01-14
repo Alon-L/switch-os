@@ -15,13 +15,6 @@ ifneq (,$(wildcard ./.env))
   export
 endif
 
-ifndef PERSISTENT_VM
-	QEMU_FLAGS += -snapshot
-	FAT_DRIVE_PERM := ronly
-else
-	FAT_DRIVE_PERM := rw
-endif
-
 ifdef GDB
 	QEMU_FLAGS += -s -S
 endif
