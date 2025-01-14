@@ -55,11 +55,12 @@ qemu: prepare-qemu
 		-m 6G \
 		-serial mon:stdio \
 		-drive if=pflash,format=raw,file=$(OVMF) \
-		-hda $(LINUX_IMAGE) \
-		-drive format=raw,file=fat:$(FAT_DRIVE_PERM):$(TEST_ROOT_DIR) \
+		-kernel $(LINUX_IMAGE) \
+		-initrd $(LINUX_INITRD) \
+		-append "console=ttyS0" \
+		-virtfs local,path=$(TEST_ROOT_DIR),mount_tag=qemu_root,security_model=passthrough,id=qemu_root,readonly=on \
 		-enable-kvm \
 		-vga virtio \
-		-net nic -net user,hostfwd=tcp::2222-:22 \
 		$(QEMU_FLAGS)
 
 .PHONY: prepare-qemu qemu
