@@ -50,6 +50,7 @@ prepare-qemu: $(MODULE_KO_PATH)
 	mkdir -p $(TEST_ROOT_DIR)
 	cp -f $^ $(TEST_ROOT_DIR)/
 	
+# TODO: Replace the constant values in `-append` with configurable ones
 qemu: prepare-qemu
 	$(QEMU) \
 		-m 6G \
@@ -57,7 +58,7 @@ qemu: prepare-qemu
 		-drive if=pflash,format=raw,file=$(OVMF) \
 		-kernel $(LINUX_IMAGE) \
 		-initrd $(LINUX_INITRD) \
-		-append "console=ttyS0" \
+		-append 'console=ttyS0 memmap=64M$$1G,4K$$4K' \
 		-virtfs local,path=$(TEST_ROOT_DIR),mount_tag=qemu_root,security_model=passthrough,id=qemu_root,readonly=on \
 		-enable-kvm \
 		-vga virtio \
