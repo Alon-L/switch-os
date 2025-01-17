@@ -1,7 +1,7 @@
 #ifndef _INCLUDE_TRACE
 #define _INCLUDE_TRACE
 
-extern void trace(char* fmt, ...);
+extern void trace(const char* fmt, ...);
 
 #ifdef DEBUG
 #define TRACE(fmt, ...) trace(fmt, ##__VA_ARGS__)

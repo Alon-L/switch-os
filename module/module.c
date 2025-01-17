@@ -10,7 +10,7 @@
 
 struct core_header* g_core_header = NULL;
 
-void trace(char* fmt, ...) {
+void trace(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   vprintk(fmt, args);
