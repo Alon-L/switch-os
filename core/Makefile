@@ -28,7 +28,7 @@ OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
 TRIM_COUNT := 4096
 
-ifdef CORE_DEBUG
+ifdef CORE_GCC_DEBUG
 	CFLAGS += -g
 endif
 

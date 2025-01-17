@@ -9,6 +9,7 @@ TEST_DIR ?= test
 TEST_ROOT_DIR ?= $(TEST_DIR)/qemu_root
 
 QEMU_FLAGS ?= 
+QEMU_DEBUGCON_FILE_PATH ?= /var/log/switch-os.log
 
 ifneq (,$(wildcard ./.env))
   include .env
@@ -17,11 +18,11 @@ endif
 
 ifdef GDB
 	QEMU_FLAGS += -s -S
-	CORE_DEBUG := 1
+	CORE_GCC_DEBUG_INFO := 1
 endif
 
 ifdef QEMU_DEBUG
-	QEMU_FLAGS += -debugcon file:/var/log/switch-os.log 
+	QEMU_FLAGS += -debugcon file:$(QEMU_DEBUGCON_FILE_PATH)
 	DEBUG := 1
 endif
 
@@ -45,12 +46,14 @@ $(MODULE_KO_PATH): $(MODULE_DIR)/core_final.o_shipped
 # This is required so we always try to compile everything.
 .PHONY: $(CORE_DIR)/build/core_final.o $(MODULE_KO_PATH)
 
-prepare-qemu: $(MODULE_KO_PATH)
+build: $(MODULE_KO_PATH)
 	mkdir -p $(TEST_ROOT_DIR)
 	cp -f $^ $(TEST_ROOT_DIR)/
+
+.PHONY: build
 	
 # TODO: Replace the constant values in `-append` with configurable ones
-qemu: prepare-qemu
+qemu: build
 	$(QEMU) \
 		-m 6G \
 		-serial mon:stdio \
@@ -63,4 +66,4 @@ qemu: prepare-qemu
 		-vga virtio \
 		$(QEMU_FLAGS)
 
-.PHONY: prepare-qemu qemu
+.PHONY: qemu
