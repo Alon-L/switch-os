@@ -1,7 +1,9 @@
 #include "hook_sleep_prepare.h"
+
 #include <linux/acpi.h>
 #include <linux/kernel.h>
 #include <linux/kprobes.h>
+
 #include "core/header.h"
 
 extern struct core_header* g_core_header;
@@ -28,8 +30,8 @@ static err_t get_acpi_waking_vector(uint32_t* waking_vector_out) {
 
   waking_vector = facs->firmware_waking_vector;
   CHECK_TRACE(
-      waking_vector != 0,
-      "Waking vector physical address is uninitialized by the kernel\n");
+    waking_vector != 0,
+    "Waking vector physical address is uninitialized by the kernel\n");
 
   *waking_vector_out = waking_vector;
 
@@ -44,8 +46,9 @@ cleanup:
 
 /*
  * Called right when `acpi_sleep_prepare` ends.
- * `acpi_sleep_prepare` sets the ACPI waking vector. We access it by using `get_acpi_waking_vector`,
- * pass it to core, and override the waking vector to core's wakeup procedure. 
+ * `acpi_sleep_prepare` sets the ACPI waking vector. We access it by using
+ * `get_acpi_waking_vector`, pass it to core, and override the waking vector to
+ * core's wakeup procedure.
  */
 static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
                                  struct pt_regs* regs) {
@@ -66,11 +69,11 @@ cleanup:
 }
 
 static struct kretprobe g_kretprobe = {
-    .kp =
-        {
-            .symbol_name = "acpi_sleep_prepare",
-        },
-    .handler = my_acpi_sleep_prepare,
+  .kp =
+    {
+      .symbol_name = "acpi_sleep_prepare",
+    },
+  .handler = my_acpi_sleep_prepare,
 };
 
 static bool g_is_hooked = false;

@@ -293,18 +293,18 @@ void uacpi_kernel_reset_event(uacpi_handle handle) {
 }
 
 uacpi_status uacpi_kernel_handle_firmware_request(
-    uacpi_firmware_request* request) {
+  uacpi_firmware_request* request) {
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
 uacpi_status uacpi_kernel_install_interrupt_handler(
-    uacpi_u32 irq, uacpi_interrupt_handler handle, uacpi_handle ctx,
-    uacpi_handle* out_irq_handle) {
+  uacpi_u32 irq, uacpi_interrupt_handler handle, uacpi_handle ctx,
+  uacpi_handle* out_irq_handle) {
   return UACPI_STATUS_OK;
 }
 
 uacpi_status uacpi_kernel_uninstall_interrupt_handler(
-    uacpi_interrupt_handler handle, uacpi_handle irq_handle) {
+  uacpi_interrupt_handler handle, uacpi_handle irq_handle) {
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 

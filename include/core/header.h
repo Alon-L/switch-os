@@ -4,8 +4,8 @@
 #include "core/consts.h"
 
 #if defined(CORE)
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #elif defined(MODULE)
 #include <linux/kernel.h>
 #endif

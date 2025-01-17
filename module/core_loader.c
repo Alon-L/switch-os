@@ -1,4 +1,5 @@
 #include "core_loader.h"
+
 #include <core/consts.h>
 #include <core/header.h>
 #include <error.h>
@@ -54,9 +55,9 @@ cleanup:
 }
 
 /*
- * Allocates executable physical memory [`phys_addr`, `phys_addr` + `size`) and copies
- * `buf` into it.
- * Sets `virt_addr_out` (if not NULL) to the virtual address that maps `phys_addr`.
+ * Allocates executable physical memory [`phys_addr`, `phys_addr` + `size`) and
+ * copies `buf` into it. Sets `virt_addr_out` (if not NULL) to the virtual
+ * address that maps `phys_addr`.
  */
 static err_t load_exec_phys_memory(uintptr_t phys_addr, void* buf, size_t size,
                                    void** virt_addr_out) {
@@ -118,9 +119,10 @@ err_t load_core(struct core_header** core_header_out) {
   CHECK_TRACE(CORE_PM_SIZE <= CORE_MAX_PM_PHYS_MEM_SIZE,
               "Not enough reserved RAM for core pm\n");
 
-  // TODO: Why do I care whether this memory is executable? This paging won't be active when I run....
+  // TODO: Why do I care whether this memory is executable? This paging won't be
+  // active when I run....
   CHECK_RETHROW(
-      load_exec_phys_memory(CORE_PHYS_ADDR, CORE_START, CORE_SIZE, &core_addr));
+    load_exec_phys_memory(CORE_PHYS_ADDR, CORE_START, CORE_SIZE, &core_addr));
   CHECK_RETHROW(load_exec_phys_memory(CORE_RM_PHYS_ADDR, CORE_RM_START,
                                       CORE_RM_SIZE, NULL));
   CHECK_RETHROW(load_exec_phys_memory(CORE_PM_PHYS_ADDR, CORE_PM_START,
