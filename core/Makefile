@@ -2,7 +2,7 @@ CC ?= gcc
 LD ?= ld
 OBJCOPY ?= objcopy
 
-CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -Werror -DCORE -fno-pic -masm=intel -ffunction-sections -fno-stack-protector
+CFLAGS := -I../include/ -ffreestanding -static -O0 -Wall -Wextra -Werror -DCORE -fno-pic -masm=intel -ffunction-sections -fno-stack-protector -mno-sse -mno-red-zone -mgeneral-regs-only
 LDFLAGS := -ffreestanding -static -O0 -nostdlib
 LD_SCRIPT_FLAGS := -E -P -x c -I../include/ 
 
@@ -17,8 +17,9 @@ LDFLAGS += -lgcc
 OBJS := core.o
 
 # UACPI
-UACPI_SOURCES := $(wildcard uacpi/source/*.c) uacpi_glue.o
-UACPI_HEADERS_DIR := uacpi/include/
+UACPI_PATH := ../lib/uacpi
+UACPI_SOURCES := $(wildcard $(UACPI_PATH)/source/*.c) uacpi_glue.o
+UACPI_HEADERS_DIR := $(UACPI_PATH)/include
 OBJS += $(UACPI_SOURCES:.c=.o) 
 CFLAGS += -I$(UACPI_HEADERS_DIR)
 LDFLAGS += -I$(UACPI_HEADERS_DIR)
