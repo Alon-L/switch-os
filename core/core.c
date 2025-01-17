@@ -8,8 +8,8 @@ __attribute__((section(".core_header"))) struct core_header core_header = {
     .magic = CORE_HEADER_MAGIC,
 };
 
-void trace(char* fmt, ...) {
-  for (char* c = fmt; *c != '\0'; c++) {
+void trace(const char* fmt, ...) {
+  for (const char* c = fmt; *c != '\0'; c++) {
     // Use QEMU's debugcon device
     asm volatile("out 0xe9, %0" :: "r"(*c));
   }
@@ -23,7 +23,6 @@ int setup_acpi(void) {
    */
   uacpi_status ret = uacpi_initialize(0);
   if (uacpi_unlikely_error(ret)) {
-    TRACE("uacpi_initialize error\n");
     return -1;
   }
 
@@ -33,7 +32,6 @@ int setup_acpi(void) {
      */
   ret = uacpi_namespace_load();
   if (uacpi_unlikely_error(ret)) {
-    TRACE("uacpi_namespace_load error\n");
     return -1;
   }
 
@@ -43,7 +41,6 @@ int setup_acpi(void) {
      */
   ret = uacpi_namespace_initialize();
   if (uacpi_unlikely_error(ret)) {
-    TRACE("uacpi_namespace_initialize error\n");
     return -1;
   }
 
@@ -56,7 +53,6 @@ int setup_acpi(void) {
      */
   ret = uacpi_finalize_gpe_initialization();
   if (uacpi_unlikely_error(ret)) {
-    TRACE("uacpi_finalize_gpe_initialization error\n");
     return -1;
   }
 
@@ -69,14 +65,14 @@ int setup_acpi(void) {
 }
 
 __attribute__((noreturn)) void core_main(void) {
-  TRACE("In core...\n");
+  TRACE("Running switch os core...\n");
 
   setup_acpi();
   uacpi_set_waking_vector(core_header.original_waking_vector, 0);
   uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S3);
   uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S3);
 
-  while (1) {}
+  // We should be in suspend by this point.
 
   __builtin_unreachable();
 }
