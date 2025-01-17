@@ -1,69 +1,65 @@
-QEMU ?= qemu-system-x86_64
-
-CORE_DIR ?= core
-
-MODULE_DIR ?= module
-MODULE_KO_PATH ?= $(MODULE_DIR)/switch_os.ko
-
-TEST_DIR ?= test
-TEST_ROOT_DIR ?= $(TEST_DIR)/qemu_root
-
-QEMU_FLAGS ?= 
-QEMU_DEBUGCON_FILE_PATH ?= /var/log/switch-os.log
-
+# Fetch an environmental file if exists.
 ifneq (,$(wildcard ./.env))
   include .env
   export
 endif
 
-ifdef GDB
-	QEMU_FLAGS += -s -S
+# This directory is added to the VM as a virtfs device. It contains the final kernel module.
+VM_MOUNT_DIR ?= build
+
+QEMU ?= qemu-system-x86_64
+QEMU_ADDITIONAL_FLAGS ?=
+# TODO: Replace the constant values in `-append` with configurable ones
+QEMU_APPEND_FLAGS ?= console=ttyS0 memmap=64M$$1G,4K$$4K
+
+# `VM_GDB` allows to connect to the qemu VM via gdb and debug it. It also compiles core's parts with debugging information.
+# See guide for connecting to qemu via gdb here: https://qemu-project.gitlab.io/qemu/system/gdb.html
+ifdef VM_GDB
+	QEMU_ADDITIONAL_FLAGS += -s -S
 	CORE_GCC_DEBUG_INFO := 1
 endif
 
+# `QEMU_DEBUG` turns on core's debug traces and outputs them into `QEMU_DEBUGCON_FILE_PATH`.
 ifdef QEMU_DEBUG
-	QEMU_FLAGS += -debugcon file:$(QEMU_DEBUGCON_FILE_PATH)
+	QEMU_DEBUGCON_FILE_PATH ?= /var/log/switch-os.log
+	QEMU_ADDITIONAL_FLAGS += -debugcon file:$(QEMU_DEBUGCON_FILE_PATH)
 	DEBUG := 1
 endif
 
 clean:
-	$(MAKE) -C $(MODULE_DIR) clean
-	$(MAKE) -C $(CORE_DIR) clean
-	rm -rf $(MODULE_DIR)/*_shipped
-	rm -rf $(TEST_ROOT_DIR)
+	$(MAKE) -C module clean
+	$(MAKE) -C core clean
+	rm -rf module/*_shipped
+	rm -rf $(VM_MOUNT_DIR)
 
 .PHONY: clean
 
-$(MODULE_DIR)/%.o_shipped: $(CORE_DIR)/build/%.o
+module/%.o_shipped: core/build/%.o
 	cp $^ $@
 
-$(CORE_DIR)/build/core_final.o:
-	$(MAKE) -C $(CORE_DIR)
+core/build/core.o:
+	$(MAKE) -C core
 
-$(MODULE_KO_PATH): $(MODULE_DIR)/core_final.o_shipped
-	$(MAKE) -C $(MODULE_DIR)
+module/switch_os.ko: module/core.o_shipped
+	$(MAKE) -C module
 
-# This is required so we always try to compile everything.
-.PHONY: $(CORE_DIR)/build/core_final.o $(MODULE_KO_PATH)
+.PHONY: core/build/core.o module/switch_os.ko
 
-build: $(MODULE_KO_PATH)
-	mkdir -p $(TEST_ROOT_DIR)
-	cp -f $^ $(TEST_ROOT_DIR)/
+$(VM_MOUNT_DIR): module/switch_os.ko
+	mkdir -p $@
+	cp -f $^ $@
 
-.PHONY: build
-	
-# TODO: Replace the constant values in `-append` with configurable ones
-qemu: build
+qemu: $(VM_MOUNT_DIR)
 	$(QEMU) \
-		-m 6G \
+		-m 2G \
 		-serial mon:stdio \
 		-drive if=pflash,format=raw,file=$(OVMF) \
 		-kernel $(LINUX_IMAGE) \
 		-initrd $(LINUX_INITRD) \
-		-append 'console=ttyS0 memmap=64M$$1G,4K$$4K' \
-		-virtfs local,path=$(TEST_ROOT_DIR),mount_tag=qemu_root,security_model=passthrough,id=qemu_root,readonly=on \
+		-append '$(QEMU_APPEND_FLAGS)' \
+		-virtfs local,path=$(VM_MOUNT_DIR),mount_tag=qemu_root,security_model=passthrough,id=qemu_root,readonly=on \
 		-enable-kvm \
 		-vga virtio \
-		$(QEMU_FLAGS)
+		$(QEMU_ADDITIONAL_FLAGS)
 
 .PHONY: qemu

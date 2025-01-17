@@ -1,5 +1,5 @@
 obj-m += switch_os.o
-switch_os-y := module.o core_loader.o suspend/hook_sleep_prepare.o core_final.o
+switch_os-y := module.o core_loader.o suspend/hook_sleep_prepare.o core.o
 
 ccflags-y := -I$(src)/../include -DMODULE
 

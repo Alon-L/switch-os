@@ -18,7 +18,8 @@ SECTIONS
   }
 
   . = ALIGN(128);
-  .bss : {
+  .data : {
+    *(.data*);
     *(.bss*);
 
     . = ALIGN(4096);
@@ -27,10 +28,5 @@ SECTIONS
 
     . += PM_STACK_SIZE;
     __pm_stack_end = .;
-  }
-
-  . = ALIGN(128);
-  .data : {
-    *(.data*);
   }
 }

@@ -11,11 +11,8 @@ SECTIONS
     *(.text*);
   }
 
-  .bss : {
-    *(.bss*);
-  }
-
   .data : {
     *(.data*);
+    *(.bss*);
   }
 }
