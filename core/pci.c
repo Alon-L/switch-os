@@ -1,5 +1,6 @@
 #include "pci.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "pci_utils.h"
@@ -35,24 +36,48 @@ cleanup:
   return err;
 }
 
+/**
+ * Validates whether a capability pointer is valid, and returns whether it
+ * points to the end of the capabilities list.
+ * @param cap_ptr     - A pointer to a capability. This contains an offset in
+ * the configuration space to another capability.
+ * @param is_end_out  - Whether the capability that `cap_ptr` is part of is the
+ * end of the capabilities list.
+ */
+static err_t validate_capability_ptr(const struct pci_dev* pci_dev,
+                                     uint8_t cap_ptr, bool* is_end_out) {
+  err_t err = SUCCESS;
+
+  // The first 0x40 bytes of the configuration space contain reserved fields
+  // which may not be capabilities.
+  CHECK(cap_ptr >= 0x40);
+
+  uint8_t next_cap_id = pci_read_8(&pci_dev->addr, cap_ptr);
+  if (next_cap_id == 0xff) {
+    // The capability `cap_ptr` points to is invalid. Therefore the capability
+    // that `cap_ptr` is part of is the final capability.
+    *is_end_out = true;
+  } else {
+    *is_end_out = false;
+  }
+
+cleanup:
+  return err;
+}
+
 err_t find_first_pci_capability(const struct pci_dev* pci_dev,
                                 uint8_t* first_cap_off_out) {
   err_t err = SUCCESS;
 
   uint8_t first_cap_ptr = pci_read_8(&pci_dev->addr, PCI_CAPABILITY_LIST);
+  bool is_end = false;
+  CHECK_RETHROW(validate_capability_ptr(pci_dev, first_cap_ptr, &is_end));
 
-  // The first 0x40 bytes of the configuration space contain reserved fields
-  // which may not be capabilities.
-  CHECK(first_cap_ptr >= 0x40);
-
-  uint8_t next_cap_id = pci_read_8(&pci_dev->addr, first_cap_ptr);
-  if (next_cap_id == 0xff) {
-    // There are no capabilities.
+  if (is_end) {
     *first_cap_off_out = 0;
-    goto cleanup;
+  } else {
+    *first_cap_off_out = first_cap_ptr;
   }
-
-  *first_cap_off_out = first_cap_ptr;
 
 cleanup:
   return err;
@@ -65,19 +90,14 @@ err_t find_next_pci_capability(const struct pci_dev* pci_dev,
 
   uint8_t prev_cap_ptr =
     pci_read_8(&pci_dev->addr, prev_cap_ptr_off + PCI_CAPABILITY_PTR_OFFSET);
+  bool is_end = false;
+  CHECK_RETHROW(validate_capability_ptr(pci_dev, prev_cap_ptr, &is_end));
 
-  // The first 0x40 bytes of the configuration space contain reserved fields
-  // which may not be capabilities.
-  CHECK(prev_cap_ptr >= 0x40);
-
-  uint8_t next_cap_id = pci_read_8(&pci_dev->addr, prev_cap_ptr);
-  if (next_cap_id == 0xff) {
-    // We have reached the last capability in the capabilities list.
+  if (is_end) {
     *next_cap_off_out = 0;
-    goto cleanup;
+  } else {
+    *next_cap_off_out = prev_cap_ptr;
   }
-
-  *next_cap_off_out = prev_cap_ptr;
 
 cleanup:
   return err;
