@@ -33,7 +33,8 @@ err_t lookup_pci_dev(struct pci_dev* pci_dev_out,
  * Find the offset of the first capability in the pci device's capabilities
  * list.
  * @param pci_dev           - The pci device.
- * @param first_cap_off_out - The offset of the first capability.
+ * @param first_cap_off_out - The offset of the first capability. This receives
+ * the value 0 if no first capability is found.
  */
 err_t find_first_pci_capability(const struct pci_dev* pci_dev,
                                 uint8_t* first_cap_off_out);
@@ -47,7 +48,8 @@ err_t find_first_pci_capability(const struct pci_dev* pci_dev,
  * configuration space's capabilities pointer register. Therefore, the first
  * capability pointer offset is `PCI_CAPABILITIES_POINTER`.
  * @param next_cap_off_out  - The offset of the next capability. The given
- * previous capaability pointer points at this offset.
+ * previous capaability pointer points at this offset. This receives the value 0
+ * if no next capability is found.
  */
 err_t find_next_pci_capability(const struct pci_dev* pci_dev,
                                uint8_t prev_cap_ptr_off,
