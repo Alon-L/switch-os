@@ -3,6 +3,7 @@
 #include "core/header.h"
 #include "io.h"
 #include "mem.h"
+#include "pci.h"
 #include "trace.h"
 #include "uacpi/status.h"
 
@@ -70,35 +71,42 @@ uacpi_status uacpi_kernel_raw_memory_write(uacpi_phys_addr address,
 
 uacpi_status uacpi_kernel_pci_device_open(uacpi_pci_address address,
                                           uacpi_handle* out_handle) {
-  memcpy(out_handle, &address, sizeof(address));
+  struct pci_dev_addr* pci_dev_addr =
+    uacpi_kernel_alloc(sizeof(struct pci_dev_addr));
+
+  if (pci_dev_addr == NULL) {
+    return UACPI_STATUS_OUT_OF_MEMORY;
+  }
+
+  pci_dev_addr->bus = address.bus;
+  pci_dev_addr->device = address.device;
+  pci_dev_addr->function = address.function;
+
+  *out_handle = pci_dev_addr;
+
   return UACPI_STATUS_OK;
 }
 
 void uacpi_kernel_pci_device_close(uacpi_handle handle) {
+  uacpi_kernel_free(handle);
   return;
 }
 
-#define PCI_CONF_ADDR(bus, device, function, offset)               \
-  (0x80000000 | ((bus) << 16) | (device << 11) | (function << 8) | \
-   (offset & 0xFC))
-
 uacpi_status uacpi_kernel_pci_read(uacpi_handle handle, uacpi_size offset,
                                    uacpi_u8 byte_width, uacpi_u64* value) {
-  uacpi_pci_address* address = handle;
-  outl(0xCF8,
-       PCI_CONF_ADDR(address->bus, address->device, address->function, offset));
+  struct pci_dev_addr* pci_dev_addr = handle;
 
   switch (byte_width) {
     case 1: {
-      *value = inb(0xCFC);
+      *value = pci_read_8(pci_dev_addr, offset);
       break;
     }
     case 2: {
-      *value = inw(0xCFC);
+      *value = pci_read_16(pci_dev_addr, offset);
       break;
     }
     case 4: {
-      *value = inl(0xCFC);
+      *value = pci_read_32(pci_dev_addr, offset);
       break;
     }
     default:
@@ -110,21 +118,19 @@ uacpi_status uacpi_kernel_pci_read(uacpi_handle handle, uacpi_size offset,
 
 uacpi_status uacpi_kernel_pci_write(uacpi_handle handle, uacpi_size offset,
                                     uacpi_u8 byte_width, uacpi_u64 value) {
-  uacpi_pci_address* address = handle;
-  outl(0xCF8,
-       PCI_CONF_ADDR(address->bus, address->device, address->function, offset));
+  struct pci_dev_addr* pci_dev_addr = handle;
 
   switch (byte_width) {
     case 1: {
-      outb((uint8_t)value, 0xCFC);
+      pci_write_8(pci_dev_addr, offset, (uint8_t)value);
       break;
     }
     case 2: {
-      outw((uint16_t)value, 0xCFC);
+      pci_write_16(pci_dev_addr, offset, (uint8_t)value);
       break;
     }
     case 4: {
-      outl((uint32_t)value, 0xCFC);
+      pci_write_32(pci_dev_addr, offset, (uint8_t)value);
       break;
     }
     default:
@@ -150,15 +156,15 @@ uacpi_status uacpi_kernel_io_read(uacpi_handle handle, uacpi_size offset,
 
   switch (byte_width) {
     case 1: {
-      *value = inb(p);
+      *value = in8(p);
       break;
     }
     case 2: {
-      *value = inw(p);
+      *value = in16(p);
       break;
     }
     case 4: {
-      *value = inl(p);
+      *value = in32(p);
       break;
     }
     default:
@@ -174,15 +180,15 @@ uacpi_status uacpi_kernel_io_write(uacpi_handle handle, uacpi_size offset,
 
   switch (byte_width) {
     case 1: {
-      outb((uint8_t)value, p);
+      out8((uint8_t)value, p);
       break;
     }
     case 2: {
-      outw((uint16_t)value, p);
+      out16((uint16_t)value, p);
       break;
     }
     case 4: {
-      outl((uint32_t)value, p);
+      out32((uint32_t)value, p);
       break;
     }
     default:
@@ -203,6 +209,7 @@ void uacpi_kernel_unmap(void* addr, uacpi_size len) {
 static char buf[1024 * 1024];
 static size_t buf_idx = 0;
 
+// TODO: Implement a real allocator
 void* uacpi_kernel_alloc(uacpi_size size) {
   if (buf_idx + size > sizeof(buf)) {
     TRACE("Not enough storage for alloc!\n");
