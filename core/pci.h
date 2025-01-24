@@ -12,22 +12,23 @@
 
 struct pci_dev {
   struct pci_dev_addr addr;
+  uint8_t header_type;
 };
 
-struct pci_dev_lookup_req {
-  uint32_t vendor_id_mask;
-  uint32_t device_id_mask;
+struct pci_dev_id {
+  uint32_t vendor_id;
+  uint32_t device_id;
 };
 
 /**
  * Search for a pci device by enumerating the pci buses.
- * @param pci_dev_out   - An allocated `pci_dev` to be filled with the found pci
- * device.
- * @param req_mas       - A mask for the vendor id and device id of the searched
- * device.
+ * @param pci_dev       - An already allocated `pci_dev` to be filled with the
+ * found pci device.
+ * @param lookup_id     - The requested vendor ID and device ID for the pci
+ * device. device.
  */
-err_t lookup_pci_dev(struct pci_dev* pci_dev_out,
-                     const struct pci_dev_lookup_req* req_mask);
+err_t lookup_pci_dev(struct pci_dev* pci_dev,
+                     const struct pci_dev_id* lookup_id);
 
 struct pci_cap_iter {
   const struct pci_dev* pci_dev;
@@ -54,8 +55,8 @@ void pci_cap_iter_next(struct pci_cap_iter* iter);
 /**
  * Iterate over all the capabilities of a pci device.
  */
-#define ITERATE_PCI_CAPABILITIES(pci_dev, iter_var)                    \
-  for (pci_cap_iter_init((pci_dev), &(iter_var)); (iter_var).off != 0; \
+#define ITERATE_PCI_CAPABILITIES(pci_dev, iter_var)                     \
+  for (pci_cap_iter_init(&(pci_dev), &(iter_var)); (iter_var).off != 0; \
        pci_cap_iter_next(&(iter_var)))
 
 #endif

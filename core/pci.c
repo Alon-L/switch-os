@@ -5,24 +5,47 @@
 
 #include "pci_utils.h"
 
-err_t lookup_pci_dev(struct pci_dev* pci_dev_out,
-                     const struct pci_dev_lookup_req* req_mask) {
+/**
+ * Init the rest of the fields in the pci device.
+ * @param pci_dev - The pci device. The struct is already expected to contain
+ * the address.
+ */
+static err_t init_pci_dev(struct pci_dev* pci_dev) {
+  err_t err = SUCCESS;
+
+  pci_dev->header_type =
+    pci_read_8(&pci_dev->addr, PCI_HEADER_TYPE) & PCI_HEADER_TYPE_MASK;
+  CHECK(pci_dev->header_type == PCI_HEADER_TYPE_NORMAL ||
+        pci_dev->header_type == PCI_HEADER_TYPE_BRIDGE ||
+        pci_dev->header_type == PCI_HEADER_TYPE_CARDBUS);
+
+cleanup:
+  return err;
+}
+
+err_t lookup_pci_dev(struct pci_dev* pci_dev,
+                     const struct pci_dev_id* lookup_id) {
   err_t err = SUCCESS;
 
   // Iterate over all pci busses and try to find a pci device that matches the
-  // mask.
+  // requested vendor and device IDs.
   for (size_t bus = 0; bus < PCI_MAX_BUS; bus++) {
     for (size_t device = 0; device < PCI_MAX_DEVICE; device++) {
       for (size_t function = 0; function < PCI_MAX_FUNCTION; function++) {
-        pci_dev_out->addr.bus = bus;
-        pci_dev_out->addr.device = device;
-        pci_dev_out->addr.function = function;
+        pci_dev->addr.bus = bus;
+        pci_dev->addr.device = device;
+        pci_dev->addr.function = function;
 
-        uint16_t vendor_id = pci_read_16(&pci_dev_out->addr, PCI_VENDOR_ID);
-        uint16_t device_id = pci_read_16(&pci_dev_out->addr, PCI_DEVICE_ID);
+        uint16_t vendor_id = pci_read_16(&pci_dev->addr, PCI_VENDOR_ID);
+        if (vendor_id == PCI_VENDOR_ID_INVALID) {
+          // Invalid device.
+          break;
+        }
+        uint16_t device_id = pci_read_16(&pci_dev->addr, PCI_DEVICE_ID);
 
-        if ((vendor_id & req_mask->vendor_id_mask) == vendor_id &&
-            (device_id & req_mask->device_id_mask) == device_id) {
+        if (lookup_id->vendor_id == vendor_id &&
+            lookup_id->device_id == device_id) {
+          CHECK_RETHROW(init_pci_dev(pci_dev));
           goto cleanup;
         }
       }

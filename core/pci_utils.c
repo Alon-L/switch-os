@@ -4,7 +4,7 @@
 
 #define PCI_CONF_ADDR(pci_dev_addr, offset)                                    \
   (0x80000000 | (((pci_dev_addr).bus) << 16) | ((pci_dev_addr).device << 11) | \
-   ((pci_dev_addr).function << 8) | ((offset) & 0xFC))
+   ((pci_dev_addr).function << 8) | (offset))
 
 #define DEFINE_PCI_OP(num, type)                                \
   type pci_read_##num(const struct pci_dev_addr* pci_dev_addr,  \
@@ -16,7 +16,7 @@
   void pci_write_##num(const struct pci_dev_addr* pci_dev_addr, \
                        uint32_t offset, type value) {           \
     out32(0xCF8, PCI_CONF_ADDR(*pci_dev_addr, offset));         \
-    return out##num(value, 0xCFC);                              \
+    return out##num(0xCFC, value);                              \
   }
 
 DEFINE_PCI_OP(8, uint8_t);

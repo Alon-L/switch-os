@@ -3,15 +3,15 @@
 
 #include <stdint.h>
 
-#define BUILDIO(num, type)                                            \
-  static inline void out##num(type value, uint16_t port) {            \
-    asm volatile("out %0, %1" : : "Nd"(port), "a"(value) : "memory"); \
-  }                                                                   \
-                                                                      \
-  static inline type in##num(uint16_t port) {                         \
-    type value;                                                       \
-    asm volatile("in %0, %1" : "=a"(value) : "Nd"(port) : "memory");  \
-    return value;                                                     \
+#define BUILDIO(num, type)                                 \
+  static inline void out##num(uint16_t port, type value) { \
+    asm volatile("out %0, %1" : : "Nd"(port), "a"(value)); \
+  }                                                        \
+                                                           \
+  static inline type in##num(uint16_t port) {              \
+    type value;                                            \
+    asm volatile("in %0, %1" : "=a"(value) : "Nd"(port));  \
+    return value;                                          \
   }
 
 BUILDIO(8, uint8_t)

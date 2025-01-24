@@ -13,6 +13,7 @@ struct pci_dev_addr {
 #define PCI_DEVICE_ID 0x02        // 16 bits
 #define PCI_COMMAND 0x04          // 16 bits
 #define PCI_STATUS 0x06           // 16 bits
+#define PCI_HEADER_TYPE 0x0e      // 8 bits
 #define PCI_BASE_ADDRESS_0 0x10   // 32 bits
 #define PCI_BASE_ADDRESS_1 0x14   // 32 bits
 #define PCI_BASE_ADDRESS_2 0x18   // 32 bits
@@ -20,7 +21,32 @@ struct pci_dev_addr {
 #define PCI_BASE_ADDRESS_4 0x20   // 32 bits
 #define PCI_BASE_ADDRESS_5 0x24   // 32 bits
 #define PCI_CAPABILITY_LIST 0x34  // 8 bits
+
 #define PCI_CAPABILITY_PTR_OFFSET 1
+
+#define PCI_HEADER_TYPE_MASK 0x7f
+#define PCI_HEADER_TYPE_NORMAL 0
+#define PCI_HEADER_TYPE_BRIDGE 1
+#define PCI_HEADER_TYPE_CARDBUS 2
+
+#define PCI_STATUS_IMM_READY 0x01  // Immediate Readiness
+#define PCI_STATUS_INTERRUPT 0x08  // Interrupt status
+#define PCI_STATUS_CAP_LIST 0x10   // Support Capability List
+#define PCI_STATUS_66MHZ 0x20      // Support 66 MHz PCI 2.1 bus
+#define PCI_STATUS_UDF 0x40        // Support User Definable Features [obsolete]
+#define PCI_STATUS_FAST_BACK 0x80  // Accept fast-back to back
+#define PCI_STATUS_PARITY 0x100    // Detected parity error
+#define PCI_STATUS_DEVSEL_MASK 0x600  // DEVSEL timing
+#define PCI_STATUS_DEVSEL_FAST 0x000
+#define PCI_STATUS_DEVSEL_MEDIUM 0x200
+#define PCI_STATUS_DEVSEL_SLOW 0x400
+#define PCI_STATUS_SIG_TARGET_ABORT 0x800   // Set on target abort
+#define PCI_STATUS_REC_TARGET_ABORT 0x1000  // Master ack of "
+#define PCI_STATUS_REC_MASTER_ABORT 0x2000  // Set on master abort
+#define PCI_STATUS_SIG_SYSTEM_ERROR 0x4000  // Set when we drive SERR
+#define PCI_STATUS_DETECTED_PARITY 0x8000   // Set on parity error
+
+#define PCI_VENDOR_ID_INVALID 0xffff
 
 /**
  * pci_read_{8,16,32} read values from the pci device's configuration space.

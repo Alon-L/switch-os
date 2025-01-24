@@ -180,15 +180,15 @@ uacpi_status uacpi_kernel_io_write(uacpi_handle handle, uacpi_size offset,
 
   switch (byte_width) {
     case 1: {
-      out8((uint8_t)value, p);
+      out8(p, (uint8_t)value);
       break;
     }
     case 2: {
-      out16((uint16_t)value, p);
+      out16(p, (uint16_t)value);
       break;
     }
     case 4: {
-      out32((uint32_t)value, p);
+      out32(p, (uint32_t)value);
       break;
     }
     default:
