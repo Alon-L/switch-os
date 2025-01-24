@@ -37,68 +37,47 @@ cleanup:
 }
 
 /**
- * Validates whether a capability pointer is valid, and returns whether it
- * points to the end of the capabilities list.
- * @param cap_ptr     - A pointer to a capability. This contains an offset in
- * the configuration space to another capability.
- * @param is_end_out  - Whether the capability that `cap_ptr` is part of is the
- * end of the capabilities list.
+ * Returns whether a pci capability is valid.
+ * @param pci_dev   - The pci device.
+ * @param cap_off   - The offset of the potential pci capability
  */
-static err_t validate_capability_ptr(const struct pci_dev* pci_dev,
-                                     uint8_t cap_ptr, bool* is_end_out) {
-  err_t err = SUCCESS;
-
+static bool is_cap_valid(const struct pci_dev* pci_dev, uint8_t cap_off) {
   // The first 0x40 bytes of the configuration space contain reserved fields
-  // which may not be capabilities.
-  CHECK(cap_ptr >= 0x40);
-
-  uint8_t next_cap_id = pci_read_8(&pci_dev->addr, cap_ptr);
-  if (next_cap_id == 0xff) {
-    // The capability `cap_ptr` points to is invalid. Therefore the capability
-    // that `cap_ptr` is part of is the final capability.
-    *is_end_out = true;
-  } else {
-    *is_end_out = false;
+  // which aren't capabilities.
+  if (cap_off < 0x40) {
+    return false;
   }
 
-cleanup:
-  return err;
+  uint8_t cap_id = pci_read_8(&pci_dev->addr, cap_off);
+  if (cap_id == 0xff) {
+    // The capability is invalid.
+    return false;
+  }
+
+  return true;
 }
 
-err_t find_first_pci_capability(const struct pci_dev* pci_dev,
-                                uint8_t* first_cap_off_out) {
-  err_t err = SUCCESS;
+void pci_cap_iter_init(const struct pci_dev* pci_dev,
+                       struct pci_cap_iter* iter) {
+  iter->pci_dev = pci_dev;
 
-  uint8_t first_cap_ptr = pci_read_8(&pci_dev->addr, PCI_CAPABILITY_LIST);
-  bool is_end = false;
-  CHECK_RETHROW(validate_capability_ptr(pci_dev, first_cap_ptr, &is_end));
-
-  if (is_end) {
-    *first_cap_off_out = 0;
+  uint8_t first_cap_off = pci_read_8(&pci_dev->addr, PCI_CAPABILITY_LIST);
+  if (is_cap_valid(pci_dev, first_cap_off)) {
+    iter->off = first_cap_off;
   } else {
-    *first_cap_off_out = first_cap_ptr;
+    iter->off = 0;
   }
-
-cleanup:
-  return err;
 }
 
-err_t find_next_pci_capability(const struct pci_dev* pci_dev,
-                               uint8_t prev_cap_ptr_off,
-                               uint8_t* next_cap_off_out) {
-  err_t err = SUCCESS;
+void pci_cap_iter_next(struct pci_cap_iter* iter) {
+  // The next capability pointer field inside a capability has an offset of
+  // `PCI_CAPABILITY_PTR_OFFSET`.
+  uint8_t next_cap_off =
+    pci_read_8(&iter->pci_dev->addr, iter->off + PCI_CAPABILITY_PTR_OFFSET);
 
-  uint8_t prev_cap_ptr =
-    pci_read_8(&pci_dev->addr, prev_cap_ptr_off + PCI_CAPABILITY_PTR_OFFSET);
-  bool is_end = false;
-  CHECK_RETHROW(validate_capability_ptr(pci_dev, prev_cap_ptr, &is_end));
-
-  if (is_end) {
-    *next_cap_off_out = 0;
+  if (is_cap_valid(iter->pci_dev, next_cap_off)) {
+    iter->off = next_cap_off;
   } else {
-    *next_cap_off_out = prev_cap_ptr;
+    iter->off = 0;
   }
-
-cleanup:
-  return err;
 }
