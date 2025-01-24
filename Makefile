@@ -16,7 +16,7 @@ QEMU_APPEND_FLAGS ?= console=ttyS0 memmap=64M$$1G,4K$$4K
 # See guide for connecting to qemu via gdb here: https://qemu-project.gitlab.io/qemu/system/gdb.html
 ifdef VM_GDB
 	QEMU_ADDITIONAL_FLAGS += -s -S
-	CORE_GCC_DEBUG_INFO := 1
+	CORE_GCC_DEBUG := 1
 endif
 
 # `QEMU_DEBUG` turns on core's debug traces and outputs them into `QEMU_DEBUGCON_FILE_PATH`.
