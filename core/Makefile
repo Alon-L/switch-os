@@ -26,7 +26,8 @@ ifdef CORE_GCC_DEBUG
 endif
 
 # `DEBUG` allows `TRACE` to print to qemu's debugcon device.
-ifdef DEBUG 
+ifdef DEBUG
+	OBJS += core_trace.o
 	CFLAGS += -D DEBUG
 endif
 

@@ -9,13 +9,6 @@ __attribute__((section(".core_header"))) struct core_header core_header = {
   .magic = CORE_HEADER_MAGIC,
 };
 
-void trace(const char* fmt, ...) {
-  for (const char* c = fmt; *c != '\0'; c++) {
-    // Use QEMU's debugcon device
-    asm volatile("out 0xe9, %0" ::"r"(*c));
-  }
-}
-
 int setup_acpi(void) {
   /*
    * Start with this as the first step of the initialization. This loads all
