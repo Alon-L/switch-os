@@ -22,7 +22,7 @@ LDFLAGS += -lgcc
 OBJS := core.o pci.o pci_utils.o
 
 ifdef CORE_GCC_DEBUG
-	CFLAGS += -g
+	CFLAGS += -gdwarf -g3
 endif
 
 # `DEBUG` allows `TRACE` to print to qemu's debugcon device.
