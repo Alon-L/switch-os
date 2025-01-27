@@ -10,6 +10,18 @@
 #define PCI_MAX_DEVICE (32)
 #define PCI_MAX_FUNCTION (8)
 
+enum pci_bar_type {
+  PCI_BAR_IO,
+  PCI_BAR_MEMORY,
+};
+
+struct pci_bar {
+  // The address is 32 bit except in cases of 64 bit memory bars. In this case,
+  // the address is concatenated using the next bar.
+  uint64_t addr;
+  enum pci_bar_type type;
+};
+
 struct pci_dev {
   struct pci_dev_addr addr;
   uint8_t header_type;
@@ -21,6 +33,13 @@ struct pci_dev_id {
 };
 
 /**
+ * Init the fields in the pci device.
+ * @param pci_dev - The pci device. The struct is already expected to contain
+ * the address.
+ */
+err_t init_pci_dev(struct pci_dev* pci_dev);
+
+/**
  * Search for a pci device by enumerating the pci buses.
  * @param pci_dev       - An already allocated `pci_dev` to be filled with the
  * found pci device.
@@ -29,6 +48,15 @@ struct pci_dev_id {
  */
 err_t lookup_pci_dev(struct pci_dev* pci_dev,
                      const struct pci_dev_id* lookup_id);
+
+/**
+ * Returns a `struct pci_bar` that represents the given bar number.
+ * @param pci_dev       - The pci device.
+ * @param bar_num       - The bar number to retrieve.
+ * @param pci_bar_out   - The pci bar struct for the given bar number.
+ */
+err_t pci_get_bar(const struct pci_dev* pci_dev, uint8_t bar_num,
+                  struct pci_bar* pci_bar_out);
 
 struct pci_cap_iter {
   const struct pci_dev* pci_dev;

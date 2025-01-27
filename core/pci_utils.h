@@ -48,6 +48,18 @@ struct pci_dev_addr {
 
 #define PCI_VENDOR_ID_INVALID 0xffff
 
+#define PCI_BASE_ADDRESS_NUM 0x6
+#define PCI_BASE_ADDRESS_INVALID 0xffffffff
+#define PCI_BASE_ADDRESS_SPACE 0x01
+#define PCI_BASE_ADDRESS_SPACE_IO 0x01
+#define PCI_BASE_ADDRESS_SPACE_MEMORY 0x00
+#define PCI_BASE_ADDRESS_MEM_TYPE_MASK 0x06
+#define PCI_BASE_ADDRESS_MEM_TYPE_32 0x00
+#define PCI_BASE_ADDRESS_MEM_TYPE_1M 0x02
+#define PCI_BASE_ADDRESS_MEM_TYPE_64 0x04
+#define PCI_BASE_ADDRESS_MEM_MASK (~0x0fUL)
+#define PCI_BASE_ADDRESS_IO_MASK (~0x03UL)
+
 /**
  * pci_read_{8,16,32} read values from the pci device's configuration space.
  * @param pci_dev   - The pci device

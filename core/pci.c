@@ -5,12 +5,7 @@
 
 #include "pci_utils.h"
 
-/**
- * Init the rest of the fields in the pci device.
- * @param pci_dev - The pci device. The struct is already expected to contain
- * the address.
- */
-static err_t init_pci_dev(struct pci_dev* pci_dev) {
+err_t init_pci_dev(struct pci_dev* pci_dev) {
   err_t err = SUCCESS;
 
   pci_dev->header_type =
@@ -54,6 +49,47 @@ err_t lookup_pci_dev(struct pci_dev* pci_dev,
 
   // No matching pci device was found.
   CHECK_FAIL();
+
+cleanup:
+  return err;
+}
+
+err_t pci_get_bar(const struct pci_dev* pci_dev, uint8_t bar_num,
+                  struct pci_bar* pci_bar_out) {
+  err_t err = SUCCESS;
+
+  CHECK(bar_num < PCI_BASE_ADDRESS_NUM);
+
+  uint32_t bar = pci_read_32(&pci_dev->addr, PCI_BASE_ADDRESS_0 + bar_num * 4);
+  CHECK(bar != PCI_BASE_ADDRESS_INVALID);
+
+  switch (bar & PCI_BASE_ADDRESS_SPACE) {
+    case PCI_BASE_ADDRESS_SPACE_IO: {
+      pci_bar_out->type = PCI_BAR_IO;
+      pci_bar_out->addr = bar & PCI_BASE_ADDRESS_IO_MASK;
+      break;
+    }
+    case PCI_BASE_ADDRESS_SPACE_MEMORY: {
+      pci_bar_out->type = PCI_BAR_MEMORY;
+      pci_bar_out->addr = bar & PCI_BASE_ADDRESS_MEM_MASK;
+      break;
+    }
+    default: {
+      // Invalid bar type
+      CHECK_FAIL();
+    }
+  }
+
+  // Concatenate this bar with the next one if this is a 64 bit memory bar.
+  if (pci_bar_out->type == PCI_BAR_MEMORY &&
+      (bar & PCI_BASE_ADDRESS_MEM_TYPE_MASK) == PCI_BASE_ADDRESS_MEM_TYPE_64) {
+    CHECK(bar_num + 1 < PCI_BASE_ADDRESS_NUM);
+
+    uint32_t bar_next =
+      pci_read_32(&pci_dev->addr, PCI_BASE_ADDRESS_0 + (bar_num + 1) * 4);
+
+    pci_bar_out->addr += (uint64_t)bar_next << 32;
+  }
 
 cleanup:
   return err;
