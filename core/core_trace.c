@@ -16,7 +16,7 @@ static void print_digits(const char* digits, size_t size) {
 }
 
 static void print_unsigned_num(uint64_t num, uint8_t base) {
-  static char digits[32];
+  static char digits[64];
 
   if (num == 0) {
     print_char('0');
@@ -38,14 +38,32 @@ static void print_unsigned_num(uint64_t num, uint8_t base) {
   print_digits(digits, idx);
 }
 
+// TODO: Implement a real version of this function. This implementation contains
+// bugs and buffer overflows.
 void trace(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
 
   for (const char* c = fmt; *c != '\0'; c++) {
-    if (*c == '%' && *(c + 1) != '\0') {
+    if (*c == '%' && *(c + 1) != '%' && *(c + 1) != '\0') {
       c++;
       switch (*c) {
+        case 'l': {
+          c++;
+          switch (*c) {
+            case 'u': {
+              uint64_t arg = va_arg(args, uint64_t);
+              print_unsigned_num(arg, 10);
+              break;
+            }
+            case 'x': {
+              uint64_t arg = va_arg(args, uint64_t);
+              print_unsigned_num(arg, 16);
+              break;
+            }
+          }
+          break;
+        }
         case 'u': {
           uint32_t arg = va_arg(args, uint32_t);
           print_unsigned_num(arg, 10);
@@ -65,6 +83,10 @@ void trace(const char* fmt, ...) {
         }
       }
     } else {
+      if (*c == '%' && *(c + 1) == '%') {
+        c++;
+      }
+
       print_char(*c);
     }
   }
