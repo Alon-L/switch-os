@@ -9,10 +9,10 @@
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-extern struct core_header core_header;
+extern struct core_header g_core_header;
 
 uacpi_status uacpi_kernel_get_rsdp(uacpi_phys_addr* out_rsdp_address) {
-  *out_rsdp_address = core_header.rsdp;
+  *out_rsdp_address = g_core_header.rsdp;
 
   return UACPI_STATUS_OK;
 }
