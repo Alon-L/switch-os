@@ -10,6 +10,11 @@
 void* core_malloc(size_t size);
 
 /**
+ * A calloc implementation for core.
+ */
+void* core_calloc(size_t count, size_t size);
+
+/**
  * A free implementation for core.
  */
 void core_free(void* ptr);

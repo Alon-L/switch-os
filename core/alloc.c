@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "mem.h"
+
 #define ALIGN_DOWN(x, align_to) ((x) & ~((align_to) - 1))
 
 static __attribute__((aligned(4096))) uint8_t g_buffer[4096 * 64];
@@ -27,6 +29,19 @@ void* core_malloc(size_t size) {
   void* ptr = g_next_free;
 
   g_next_free += size;
+
+  return ptr;
+}
+
+void* core_calloc(size_t count, size_t size) {
+  size_t total_size = count * size;
+
+  void* ptr = core_malloc(total_size);
+  if (ptr == NULL) {
+    return NULL;
+  }
+
+  memset(ptr, 0, total_size);
 
   return ptr;
 }

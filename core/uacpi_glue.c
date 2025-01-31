@@ -212,16 +212,7 @@ void* uacpi_kernel_alloc(uacpi_size size) {
 }
 
 void* uacpi_kernel_calloc(uacpi_size count, uacpi_size size) {
-  size_t total_size = count * size;
-
-  void* ptr = core_malloc(total_size);
-  if (ptr == NULL) {
-    return NULL;
-  }
-
-  memset(ptr, 0, total_size);
-
-  return ptr;
+  return core_calloc(count, size);
 }
 
 void uacpi_kernel_free(void* mem) {
