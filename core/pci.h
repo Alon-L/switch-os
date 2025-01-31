@@ -24,12 +24,14 @@ struct pci_bar {
 
 struct pci_dev {
   struct pci_dev_addr addr;
+  uint16_t vendor_id;
+  uint16_t device_id;
   uint8_t header_type;
 };
 
 struct pci_dev_id {
-  uint32_t vendor_id;
-  uint32_t device_id;
+  uint16_t vendor_id;
+  uint16_t device_id;
 };
 
 /**

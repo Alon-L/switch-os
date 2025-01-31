@@ -8,6 +8,9 @@
 err_t init_pci_dev(struct pci_dev* pci_dev) {
   err_t err = SUCCESS;
 
+  pci_dev->vendor_id = pci_read_16(&pci_dev->addr, PCI_VENDOR_ID);
+  pci_dev->device_id = pci_read_16(&pci_dev->addr, PCI_DEVICE_ID);
+
   pci_dev->header_type =
     pci_read_8(&pci_dev->addr, PCI_HEADER_TYPE) & PCI_HEADER_TYPE_MASK;
   CHECK(pci_dev->header_type == PCI_HEADER_TYPE_NORMAL ||
