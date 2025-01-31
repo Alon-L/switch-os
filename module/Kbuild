@@ -1,5 +1,13 @@
 obj-m += switch_os.o
-switch_os-y := module.o core_loader.o suspend/hook_sleep_prepare.o core.o
+
+switch_os-y += module.o
+switch_os-y += core_loader.o
+switch_os-y += acpi.o
+switch_os-y += configure_core_header.o
+switch_os-y += suspend/hook_sleep_prepare.o
+
+# Shipped core binary
+switch_os-y += core.o
 
 ccflags-y := -I$(src)/../include -DMODULE
 

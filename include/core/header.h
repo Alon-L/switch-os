@@ -13,9 +13,34 @@
 typedef int (*core_start_t)(void);
 
 struct core_header {
+  // [READ]   A magic filled during linkage to validate the beginning of the
+  //          core header.
   const uint32_t magic;
+
+  // [WRITE]  The original waking vector of the kernel that entered core. The
+  //          module must fill this.
   uint32_t original_waking_vector;
+
+  // [WRITE]  The rsdp table's physical address. The module must fill this.
   uint64_t rsdp;
+
+  // [WRITE]  Values used to find and restore the disk used for dumping and
+  //          loading the memory. The module must fill this.
+  struct {
+    // The disk's pci address.
+    struct {
+      uint8_t bus;
+      uint8_t device;
+      uint8_t function;
+    } addr;
+
+    // The disk's pci bar values.
+    // The device loses power when entering S3, and core receives it after a
+    // reset. Therefore, it does not contain the bios's configured bars.
+    // Similarly to the kernel, we restore these bars before starting
+    // communication with the device.
+    uint32_t bars[6];
+  } disk_pci;
 } __attribute__((packed));
 
 static inline bool is_core_header_magic_valid(struct core_header* core_header) {
