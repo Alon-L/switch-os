@@ -1,5 +1,6 @@
 #include <uacpi/kernel_api.h>
 
+#include "alloc.h"
 #include "core/header.h"
 #include "io.h"
 #include "mem.h"
@@ -206,25 +207,14 @@ void uacpi_kernel_unmap(void* addr, uacpi_size len) {
   return;
 }
 
-static char buf[1024 * 1024];
-static size_t buf_idx = 0;
-
-// TODO: Implement a real allocator
 void* uacpi_kernel_alloc(uacpi_size size) {
-  if (buf_idx + size > sizeof(buf)) {
-    TRACE("Not enough storage for alloc!\n");
-    return NULL;
-  }
-
-  void* ptr = &buf[buf_idx];
-  buf_idx += size;
-  return ptr;
+  return core_malloc(size);
 }
 
 void* uacpi_kernel_calloc(uacpi_size count, uacpi_size size) {
   size_t total_size = count * size;
 
-  void* ptr = uacpi_kernel_alloc(total_size);
+  void* ptr = core_malloc(total_size);
   if (ptr == NULL) {
     return NULL;
   }
@@ -235,11 +225,11 @@ void* uacpi_kernel_calloc(uacpi_size count, uacpi_size size) {
 }
 
 void uacpi_kernel_free(void* mem) {
-  return;
+  core_free(mem);
 }
 
 void uacpi_kernel_log(uacpi_log_level level, const uacpi_char* log) {
-  TRACE(log);
+  TRACE("%s", log);
   return;
 }
 

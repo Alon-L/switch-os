@@ -19,7 +19,7 @@ include pm/Makefile
 # Realmode and protected mode should not be compiled using libgcc.
 LDFLAGS += -lgcc
 
-OBJS := core.o pci.o pci_utils.o
+OBJS := core.o pci.o pci_utils.o alloc.o
 
 ifdef CORE_GCC_DEBUG
 	CFLAGS += -gdwarf -g3

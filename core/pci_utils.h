@@ -60,6 +60,9 @@ struct pci_dev_addr {
 #define PCI_BASE_ADDRESS_MEM_MASK (~0x0fUL)
 #define PCI_BASE_ADDRESS_IO_MASK (~0x03UL)
 
+#define PCI_COMMAND_IO 0x1      // Enable response in I/O space
+#define PCI_COMMAND_MEMORY 0x2  // Enable response in Memory space
+
 /**
  * pci_read_{8,16,32} read values from the pci device's configuration space.
  * @param pci_dev   - The pci device
