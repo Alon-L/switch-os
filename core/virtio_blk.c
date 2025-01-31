@@ -13,16 +13,16 @@
 extern struct core_header g_core_header;
 
 /**
- * Find the additional memory the virtio block device uses, and fill it in
- * `virtio_blk_dev`.
+ * Iterate over the device's capabilities, which hold additional memory areas
+ * the virtio block device uses, and fill them in `virtio_blk_dev`.
+ *
  * The additional memory structs are found in the pci device's bars. Virtio
  * devices specify the location of these structs in the pci device's
- * capabilities list. We iterate over the capabilities list and find the structs
- * we care for.
+ * capabilities list.
+ *
  * @param virtio_blk_dev  - The virtio block device.
  */
-static err_t init_virtio_blk_dev_structs(
-  struct virtio_blk_dev* virtio_blk_dev) {
+static err_t parse_virtio_blk_caps(struct virtio_blk_dev* virtio_blk_dev) {
   err_t err = SUCCESS;
 
   // Make sure the capability list is available.
@@ -67,16 +67,16 @@ static err_t init_virtio_blk_dev_structs(
 
     switch (cfg_type) {
       case VIRTIO_PCI_CAP_COMMON_CFG: {
-        // Store the common cfg struct.
+        // See section 4.1.4.3 in the virtio specs.
         // TODO: Support IO bars too
         CHECK(pci_bar.type == PCI_BAR_MEMORY);
 
         virtio_blk_dev->common_cfg =
           (struct virtio_pci_common_cfg*)pci_bar.addr;
-
         break;
       }
       case VIRTIO_PCI_CAP_NOTIFY_CFG: {
+        // See section 4.1.4.4 in the virtio specs.
         // The notify capability holds the constants to derive the queue notify
         // address: `bar_addr + cap.offset + multiplier * queue_notify_off`
         // (`queue_notify_off` is stored in the common configuration, and is
@@ -254,8 +254,8 @@ err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev) {
   // We expect the device to have a normal header.
   CHECK(virtio_blk_dev->pci_dev.header_type == PCI_HEADER_TYPE_NORMAL);
 
-  // Find the additional memory structs for the device.
-  CHECK_RETHROW(init_virtio_blk_dev_structs(virtio_blk_dev));
+  // Find the additional memory areas for the device.
+  CHECK_RETHROW(parse_virtio_blk_caps(virtio_blk_dev));
   // We require the common cfg and notify cfg.
   CHECK(virtio_blk_dev->common_cfg != NULL && virtio_blk_dev->notify.off != 0);
 
