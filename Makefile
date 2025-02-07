@@ -45,11 +45,11 @@ module/switch_os.ko: module/core.o_shipped
 
 .PHONY: core/build/core.o module/switch_os.ko
 
-$(VM_MOUNT_DIR): module/switch_os.ko
-	mkdir -p $@
-	cp -f $^ $@
+build: module/switch_os.ko
+	mkdir -p build
+	cp -f $^ build
 
-qemu: $(VM_MOUNT_DIR)
+qemu: build
 	$(QEMU) \
 		-m 2G \
 		-serial mon:stdio \

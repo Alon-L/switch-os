@@ -9,6 +9,7 @@
 #include "mem.h"
 #include "pci.h"
 #include "pci_utils.h"
+#include "virtio_queue.h"
 
 extern struct core_header g_core_header;
 
@@ -103,9 +104,10 @@ cleanup:
 }
 
 /**
- * Initializes a virtio's device status. This is the first thing a driver should
- * perform on the device.
- * Updates the `virtio_blk_dev`'s status to the updated status.
+ * Initializes a virtio's device status by resetting it, and then setting
+ * `VIRTIO_STATUS_ACKNOWLEDGE | VIRTIO_STATUS_DRIVER`. This is the first thing a
+ * driver should perform on the device. Updates the `virtio_blk_dev`'s status to
+ * the updated status.
  */
 static void init_virtio_status(struct virtio_blk_dev* virtio_blk_dev) {
   uint8_t status = VIRTIO_STATUS_RESET;
@@ -119,8 +121,7 @@ static void init_virtio_status(struct virtio_blk_dev* virtio_blk_dev) {
 }
 
 /**
- * Perform the feature negotiation against the virtio device. In our case, we
- * don't require any features.
+ * Perform the feature negotiation against the virtio device.
  * Updates the `virtio_blk_dev`'s features to the negotiated features.
  */
 static err_t negotiate_virtio_features(struct virtio_blk_dev* virtio_blk_dev) {
@@ -156,71 +157,6 @@ static err_t negotiate_virtio_features(struct virtio_blk_dev* virtio_blk_dev) {
         VIRTIO_STATUS_FEATURES_OK);
 
   virtio_blk_dev->features = requested_features;
-
-cleanup:
-  return err;
-}
-
-/**
- * Set the pointers of the parts of the split virtqueue in the device's common
- * configuration.
- */
-static void configure_virtio_blk_queue_ptrs(
-  struct virtio_pci_common_cfg* common_cfg, struct virtio_queue* queue) {
-  write_mb16(&common_cfg->queue_select, queue->num);
-
-  write32(&common_cfg->queue_desc_lo, (uint32_t)(uintptr_t)queue->desc);
-  write32(&common_cfg->queue_desc_hi, (uint32_t)((uintptr_t)queue->desc >> 32));
-
-  write32(&common_cfg->queue_driver_lo, (uint32_t)(uintptr_t)queue->avail);
-  write32(&common_cfg->queue_driver_hi,
-          (uint32_t)((uintptr_t)queue->avail >> 32));
-
-  write32(&common_cfg->queue_device_lo, (uint32_t)(uintptr_t)queue->used);
-  write32(&common_cfg->queue_device_hi,
-          (uint32_t)((uintptr_t)queue->used >> 32));
-
-  mb();
-}
-
-/**
- * Initialize the queue of a virtio blk device.
- * Valdiate the queue, allocate and configure the parts required for its split
- * virtqueue, and finally enable the queue.
- */
-static err_t init_virtio_blk_queue(struct virtio_pci_common_cfg* common_cfg,
-                                   struct virtio_queue* queue) {
-  err_t err = SUCCESS;
-
-  write_mb16(&common_cfg->queue_select, queue->num);
-  uint16_t queue_size = read16(&common_cfg->queue_size);
-  CHECK(queue_size != VIRTIO_INVALID_QUEUE_SIZE);
-
-  queue->size = queue_size;
-
-  // Allocate the split virtqueue parts.
-  queue->desc = core_calloc(sizeof(struct virtq_desc), queue_size);
-  CHECK(queue->desc != NULL);
-  queue->avail =
-    core_calloc(sizeof(struct virtq_avail) + sizeof(uint16_t) * queue_size, 1);
-  CHECK(queue->avail != NULL);
-  queue->used = core_calloc(
-    sizeof(struct virtq_used) + sizeof(struct virtq_used_elem) * queue_size, 1);
-  CHECK(queue->used != NULL);
-
-  // We don't have interrupts enabled, and we wish to not get notifications
-  // (interrupts) from the device when it is finished with a read/write request.
-  queue->avail->flags |= VIRTQ_AVAIL_F_NO_INTERRUPT;
-
-  // Make sure all allocations above are finished.
-  mb();
-
-  // Set the desc, avail, and used pointers in the device's common configuration
-  // to reflect the new queue.
-  configure_virtio_blk_queue_ptrs(common_cfg, queue);
-
-  // Finally enable the queue.
-  write_mb16(&common_cfg->queue_enable, 1);
 
 cleanup:
   return err;
@@ -267,14 +203,12 @@ err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev) {
 
   init_virtio_status(virtio_blk_dev);
 
-  // Negotiate the device's features. In our case, we don't require any
-  // features.
+  // Negotiate the device's features.
   CHECK_RETHROW(negotiate_virtio_features(virtio_blk_dev));
 
   // Virtio blk devices only have a single queue.
   virtio_blk_dev->queue.num = 0;
-  CHECK_RETHROW(
-    init_virtio_blk_queue(virtio_blk_dev->common_cfg, &virtio_blk_dev->queue));
+  CHECK_RETHROW(init_virtio_blk_queue(virtio_blk_dev));
 
   virtio_blk_dev->status |= VIRTIO_STATUS_DRIVER_OK;
   write_mb8(&virtio_blk_dev->common_cfg->device_status, virtio_blk_dev->status);
@@ -286,5 +220,118 @@ cleanup:
     }
   }
 
+  return err;
+}
+
+/**
+ * Create and send a request to the virtio device.
+ *
+ * A request consists of 3 descriptors which together make up a `virtio_blk_req`
+ * with 512 bytes of data.
+ * The virtio specification states that descriptors may be either read-only or
+ * write-only. Therefore, we have to split our request to 3 descriptors:
+ * 1. The read-only header which contains the type and sector.
+ * 2. The 512 bytes of data, which are read-only on for write requests, or
+ * write-only for read requests.
+ * 3. The write-only footer which contains the request status. This is filled by
+ * the device when the request is placed in the used ring.
+ *
+ * @param virtio_blk_dev - The virtio block device.
+ * @param request_type   - Either `VIRTIO_BLK_T_IN` for read requests, or
+ * `VIRTIO_BLK_T_OUT` for write requests.
+ * @param sector         - The sector number to read/write to.
+ * @param data           - The data buffer to read from / write to.
+ * @param size           - The size of the data buffer. A request can read/write
+ * more than a single sector, but the data must be aligned to 512-bytes (sector
+ * size).
+ */
+static err_t request_virtio_blk(struct virtio_blk_dev* virtio_blk_dev,
+                                uint32_t request_type, uint64_t sector,
+                                uint8_t* data, size_t size) {
+  err_t err = SUCCESS;
+  uint16_t desc1 = VIRTIO_INVALID_DESC;
+  uint16_t desc2 = VIRTIO_INVALID_DESC;
+  uint16_t desc3 = VIRTIO_INVALID_DESC;
+  struct virtio_blk_req* header = NULL;
+
+  CHECK(size % VIRTIO_BLK_SECTOR_SIZE == 0);
+
+  struct virtio_queue* queue = &virtio_blk_dev->queue;
+
+  header = core_calloc(sizeof(struct virtio_blk_req), 1);
+  CHECK(header != NULL);
+
+  header->type = request_type;
+  header->sector = sector;
+  header->status = 0;
+
+  // Allocate the 3 descriptors needed for the request.
+  CHECK_RETHROW(alloc_queue_desc(queue, &desc1));
+  CHECK_RETHROW(alloc_queue_desc(queue, &desc2));
+  CHECK_RETHROW(alloc_queue_desc(queue, &desc3));
+
+  // The first descriptor is read-only and contains the type and
+  // sector. It is chained to the second descriptor.
+  queue->desc[desc1].addr = (uint64_t)header;
+  queue->desc[desc1].len = VIRTIO_BLK_REQ_HEADER_SIZE;
+  queue->desc[desc1].flags = VIRTQ_DESC_F_NEXT;
+  queue->desc[desc1].next = desc2;
+
+  // The second descriptor contains the data. It is chained to the third
+  // descriptor.
+  queue->desc[desc2].addr = (uint64_t)data;
+  queue->desc[desc2].len = size;
+  queue->desc[desc2].flags = VIRTQ_DESC_F_NEXT;
+  queue->desc[desc2].next = desc3;
+  // The second descriptor is read-only for write requests, or write-only for
+  // read requests.
+  if (request_type == VIRTIO_BLK_T_IN) {
+    queue->desc[desc2].flags |= VIRTQ_DESC_F_WRITE;
+  }
+
+  // The third descriptor contains the request status, which is filled by the
+  // device when placed into the used ring.
+  queue->desc[desc3].addr = (uint64_t)header + VIRTIO_BLK_REQ_HEADER_SIZE;
+  queue->desc[desc3].len = VIRTIO_BLK_REQ_FOOTER_SIZE;
+  queue->desc[desc3].flags = VIRTQ_DESC_F_WRITE;
+
+  // Place the descriptor chain in the available ring, and increase its index.
+  uint16_t avail_idx = read16(&queue->avail->idx);
+  write_mb16(&queue->avail->ring[avail_idx % queue->size], desc1);
+  write_mb16(&queue->avail->idx, avail_idx + 1);
+
+  // Notify the device of the new descriptors.
+  write_mb16((void*)(queue->notify_off), queue->num);
+
+cleanup:
+  if (err != SUCCESS) {
+    core_free(header);
+    free_queue_desc(&virtio_blk_dev->queue, desc1);
+    free_queue_desc(&virtio_blk_dev->queue, desc2);
+    free_queue_desc(&virtio_blk_dev->queue, desc3);
+  }
+
+  return err;
+}
+
+err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
+                      uint8_t* data, size_t size) {
+  err_t err = SUCCESS;
+
+  CHECK_RETHROW(
+    request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_IN, sector, data, size));
+
+cleanup:
+  return err;
+}
+
+err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
+                       uint8_t* data, size_t size) {
+  err_t err = SUCCESS;
+
+  CHECK_RETHROW(
+    request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_OUT, sector, data, size));
+
+cleanup:
   return err;
 }

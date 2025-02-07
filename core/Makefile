@@ -3,7 +3,7 @@ LD ?= ld
 OBJCOPY ?= objcopy
 
 CFLAGS := -Wall -Wextra -Werror \
-					-I../include/ -ffreestanding -static -O0 -fno-zero-initialized-in-bss \
+					-I../include/ -I. -ffreestanding -static -O0 -fno-zero-initialized-in-bss \
 					-D CORE \
 					-fno-pic -masm=intel \
 					-ffunction-sections -fno-stack-protector -mno-sse -mno-red-zone -mgeneral-regs-only
@@ -22,7 +22,9 @@ LDFLAGS += -lgcc
 OBJS += core.o
 OBJS += pci.o pci_utils.o
 OBJS += alloc.o
-OBJS += virtio_blk.o
+
+include drivers/Makefile
+OBJS += $(addprefix drivers/,$(DRIVERS_OBJS))
 
 ifdef CORE_GCC_DEBUG
 	CFLAGS += -gdwarf -g3

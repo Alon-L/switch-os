@@ -1,15 +1,27 @@
 #ifndef _VIRTIO_BLK_H
 #define _VIRTIO_BLK_H
 
+#include <stddef.h>
+
 #include "error.h"
 #include "pci.h"
 
-// We don't require any virtio features.
 #define VIRTIO_BLK_REQUESTED_FEATURES 0
 
 struct virtio_queue {
   uint16_t num;
   uint16_t size;
+  uint16_t seen_used;
+  uint64_t notify_off;
+
+#define VIRTIO_INVALID_FREE_HEAD 0xffff
+  // The head of the free descriptors list. Every descriptor in this list is the
+  // linked to the next one using the `next` field.
+  // The final free descriptor in the list holds `VIRTIO_INVALID_FREE_HEAD` in
+  // the `next` field. If the head is `VIRTIO_INVALID_FREE_HEAD` then there are
+  // no free descriptors.
+  uint16_t free_head;
+
   struct virtq_desc* desc;
   struct virtq_avail* avail;
   struct virtq_used* used;
@@ -17,14 +29,19 @@ struct virtio_queue {
 
 struct virtio_blk_dev {
   struct pci_dev pci_dev;
+
   struct virtio_pci_common_cfg* common_cfg;
+
+  struct virtio_queue queue;
+
+  // The offset and multiplier values stored in the notification capability.
   struct {
     uint64_t off;
     uint32_t multiplier;
   } notify;
+
   uint8_t status;
   uint64_t features;
-  struct virtio_queue queue;
 };
 
 /**
@@ -32,6 +49,28 @@ struct virtio_blk_dev {
  * @param virtio_blk_dev - The virtio blk device.
  */
 err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev);
+
+/**
+ * Read sector(s) from the virtio blk device.
+ * @param virtio_blk-dev - The virtio blk device.
+ * @param sector         - The sector to start reading from.
+ * @param data           - A buffer which will be filled with the read data.
+ * @param size           - The size of the data to read. Must be aligned to 512
+ * bytes (sector size).
+ */
+err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
+                      uint8_t* data, size_t size);
+
+/**
+ * Write sector(s) to the virtio blk device.
+ * @param virtio_blk-dev - The virtio blk device.
+ * @param sector         - The sector to start writing to.
+ * @param data           - A buffer which contains the data to write.
+ * @param size           - The size of the data to write. Must be aligned to 512
+ * bytes (sector size).
+ */
+err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
+                       uint8_t* data, size_t size);
 
 // -----------------------------------------------
 // ----- VIRTIO CONSTANTS FROM SPECIFICATION -----
@@ -124,7 +163,7 @@ struct virtq_avail {
 
 struct virtq_used_elem {
   uint32_t id;  // Index of start of used descriptor chain.
-  // The number of bytes written into the device writable portion of* the buffer
+  // The number of bytes written into the device writable portion of the buffer
   // described by the descriptor chain.
   uint32_t len;
 } __attribute__((packed));
@@ -159,5 +198,12 @@ struct virtio_blk_req {
 #define VIRTIO_BLK_S_UNSUPP 2
 
 #define VIRTIO_INVALID_QUEUE_SIZE 0xffff
+
+#define VIRTIO_F_INDIRECT_DESC 28
+#define VIRTIO_F_IN_ORDER 35
+
+#define VIRTIO_BLK_SECTOR_SIZE 512
+
+#define VIRTIO_INVALID_DESC 0xffff
 
 #endif
