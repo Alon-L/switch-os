@@ -39,9 +39,7 @@ void cleanup_module(void) {
   if (g_core_header != NULL) {
     unload_core(g_core_header);
   }
-  if (is_sleep_prepare_hooked()) {
-    unhook_sleep_prepare();
-  }
+  unhook_sleep_prepare();
 }
 
 MODULE_LICENSE("GPL");

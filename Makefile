@@ -16,7 +16,7 @@ QEMU_APPEND_FLAGS ?= console=ttyS0 memmap=64M$$1G,4K$$4K
 # See guide for connecting to qemu via gdb here: https://qemu-project.gitlab.io/qemu/system/gdb.html
 ifdef VM_GDB
 	QEMU_ADDITIONAL_FLAGS += -s -S
-	CORE_GCC_DEBUG_INFO := 1
+	CORE_GCC_DEBUG := 1
 endif
 
 # `QEMU_DEBUG` turns on core's debug traces and outputs them into `QEMU_DEBUGCON_FILE_PATH`.
@@ -45,11 +45,11 @@ module/switch_os.ko: module/core.o_shipped
 
 .PHONY: core/build/core.o module/switch_os.ko
 
-$(VM_MOUNT_DIR): module/switch_os.ko
-	mkdir -p $@
-	cp -f $^ $@
+build: module/switch_os.ko
+	mkdir -p build
+	cp -f $^ build
 
-qemu: $(VM_MOUNT_DIR)
+qemu: build
 	$(QEMU) \
 		-m 2G \
 		-serial mon:stdio \
@@ -58,6 +58,7 @@ qemu: $(VM_MOUNT_DIR)
 		-initrd $(LINUX_INITRD) \
 		-append '$(QEMU_APPEND_FLAGS)' \
 		-virtfs local,path=$(VM_MOUNT_DIR),mount_tag=qemu_root,security_model=passthrough,id=qemu_root,readonly=on \
+		-drive id=buffer_drive,file=$(BUFFER_DRIVE_IMG),if=none -device virtio-blk-pci,drive=buffer_drive \
 		-enable-kvm \
 		-vga virtio \
 		$(QEMU_ADDITIONAL_FLAGS)

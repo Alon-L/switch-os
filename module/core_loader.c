@@ -3,7 +3,6 @@
 #include <core/consts.h>
 #include <core/header.h>
 #include <error.h>
-#include <linux/efi.h>
 #include <linux/io.h>
 #include <linux/mm.h>
 
@@ -82,31 +81,6 @@ cleanup:
   return err;
 }
 
-static err_t find_acpi_rsdp(uint64_t* rsdp_out) {
-  err_t err = SUCCESS;
-
-  // Taken from the kernel's `cpi_os_get_root_pointer`
-  CHECK(efi_enabled(EFI_CONFIG_TABLES));
-  CHECK(efi.acpi20 != EFI_INVALID_TABLE_ADDR);
-
-  *rsdp_out = efi.acpi20;
-
-cleanup:
-  return err;
-}
-
-static err_t fill_core_header(struct core_header* core_header) {
-  err_t err = SUCCESS;
-
-  CHECK_RETHROW(find_acpi_rsdp(&core_header->rsdp));
-
-  // NOTE: `core_header.original_waking_vector` has to be filled from within the
-  // sleep prepare hook in `my_acpi_sleep_prepare`.
-
-cleanup:
-  return err;
-}
-
 err_t load_core(struct core_header** core_header_out) {
   err_t err = SUCCESS;
   void* core_addr;
@@ -130,8 +104,6 @@ err_t load_core(struct core_header** core_header_out) {
 
   core_header = (struct core_header*)core_addr;
   CHECK(is_core_header_magic_valid(core_header));
-
-  CHECK_RETHROW(fill_core_header(core_header));
 
   *core_header_out = core_header;
 

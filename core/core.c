@@ -5,16 +5,9 @@
 #include "core/header.h"
 #include "trace.h"
 
-__attribute__((section(".core_header"))) struct core_header core_header = {
+__attribute__((section(".core_header"))) struct core_header g_core_header = {
   .magic = CORE_HEADER_MAGIC,
 };
-
-void trace(const char* fmt, ...) {
-  for (const char* c = fmt; *c != '\0'; c++) {
-    // Use QEMU's debugcon device
-    asm volatile("out 0xe9, %0" ::"r"(*c));
-  }
-}
 
 int setup_acpi(void) {
   /*
@@ -72,7 +65,7 @@ __attribute__((noreturn)) void core_main(void) {
   TRACE("Running switch os core...\n");
 
   setup_acpi();
-  uacpi_set_waking_vector(core_header.original_waking_vector, 0);
+  uacpi_set_waking_vector(g_core_header.original_waking_vector, 0);
   uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S3);
   uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S3);
 
