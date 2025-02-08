@@ -138,11 +138,10 @@ err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out, uint32_t* 
 
   CHECK(is_unseen_used_virtio_blk(queue));
 
-  *desc_out = (uint16_t)read32(&queue->used->ring[queue->seen_used].id);
-  *len_out = read32(&queue->used->ring[queue->seen_used].len);
+  *desc_out = (uint16_t)read32(&queue->used->ring[queue->seen_used % queue->size].id);
+  *len_out = read32(&queue->used->ring[queue->seen_used % queue->size].len);
 
-  // Increment seen used.
-  queue->seen_used = (queue->seen_used + 1) % queue->size;
+  queue->seen_used++;
 
 cleanup:
   return err;
