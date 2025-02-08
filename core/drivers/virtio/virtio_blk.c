@@ -235,10 +235,9 @@ static err_t request_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint32_t 
   uint16_t desc2 = VIRTIO_INVALID_DESC;
   uint16_t desc3 = VIRTIO_INVALID_DESC;
   struct virtio_blk_req* header = NULL;
+  struct virtio_queue* queue = &virtio_blk_dev->queue;
 
   CHECK(size % VIRTIO_BLK_SECTOR_SIZE == 0);
-
-  struct virtio_queue* queue = &virtio_blk_dev->queue;
 
   header = core_calloc(sizeof(struct virtio_blk_req), 1);
   CHECK(header != NULL);
@@ -287,10 +286,10 @@ static err_t request_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint32_t 
 
 cleanup:
   if (err != SUCCESS) {
+    free_queue_desc(queue, desc1);
+    free_queue_desc(queue, desc2);
+    free_queue_desc(queue, desc3);
     core_free(header);
-    free_queue_desc(&virtio_blk_dev->queue, desc1);
-    free_queue_desc(&virtio_blk_dev->queue, desc2);
-    free_queue_desc(&virtio_blk_dev->queue, desc3);
   }
 
   return err;
@@ -311,5 +310,93 @@ err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, u
   CHECK_RETHROW(request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_OUT, sector, data, size));
 
 cleanup:
+  return err;
+}
+
+/**
+ * Validate a used descriptor chain response to a read/write request.
+ *
+ * The response includes 3 descriptors chained together.
+ * The given length must equal the size of the write-only descriptors.
+ *
+ * @param desc  - The descriptor id of the first descriptor in the chain.
+ * @param len   - The length of data the device has written to the descriptors.
+ * This is obtained from `pop_used_virtio_blk`.
+ */
+static err_t validate_used_response(struct virtio_queue* queue, uint16_t desc, uint32_t len) {
+  err_t err = SUCCESS;
+  uint16_t desc1 = VIRTIO_INVALID_DESC;
+  uint16_t desc2 = VIRTIO_INVALID_DESC;
+  uint16_t desc3 = VIRTIO_INVALID_DESC;
+
+  // The response must be a chain of 3 descriptors.
+  desc1 = desc;
+  CHECK(queue->desc[desc1].flags & VIRTQ_DESC_F_NEXT);
+  desc2 = queue->desc[desc1].next;
+  CHECK(queue->desc[desc2].flags & VIRTQ_DESC_F_NEXT);
+  desc3 = queue->desc[desc2].next;
+  CHECK(queue->desc[desc3].flags & VIRTQ_DESC_F_WRITE);
+
+  // Validate the response status.
+  CHECK(*(uint8_t*)queue->desc[desc3].addr == VIRTIO_BLK_S_OK);
+
+  // The given length equals the amount of data the device has written. We
+  // expect every write-only descriptor to be fully written to.
+  len -= queue->desc[desc3].len;
+  if (queue->desc[desc2].flags & VIRTQ_DESC_F_WRITE) {
+    len -= queue->desc[desc2].len;
+  }
+  CHECK(len == 0);
+
+cleanup:
+  return err;
+}
+
+/**
+ * Free a request descriptor chain.
+ */
+static err_t free_request(struct virtio_queue* queue, uint16_t desc) {
+  err_t err = SUCCESS;
+  uint16_t desc1 = VIRTIO_INVALID_DESC;
+  uint16_t desc2 = VIRTIO_INVALID_DESC;
+  uint16_t desc3 = VIRTIO_INVALID_DESC;
+
+  desc1 = desc;
+  CHECK(queue->desc[desc1].flags & VIRTQ_DESC_F_NEXT);
+  desc2 = queue->desc[desc1].next;
+  CHECK(queue->desc[desc2].flags & VIRTQ_DESC_F_NEXT);
+  desc3 = queue->desc[desc2].next;
+  CHECK(queue->desc[desc3].flags & VIRTQ_DESC_F_WRITE);
+
+cleanup:
+  // Free the descriptors.
+  free_queue_desc(queue, desc1);
+  free_queue_desc(queue, desc2);
+  free_queue_desc(queue, desc3);
+  // Free the `struct virtio_blk_req` allocated in `request_virtio_blk`.
+  core_free((void*)queue->desc[desc1].addr);
+
+  return err;
+}
+
+err_t consume_response_virtio_blk(struct virtio_blk_dev* virtio_blk_dev) {
+  err_t err = SUCCESS;
+  uint16_t desc = VIRTIO_INVALID_DESC;
+  struct virtio_queue* queue = &virtio_blk_dev->queue;
+
+  // Wait for a response.
+  while (!is_unseen_used_virtio_queue(queue)) {
+  }
+
+  // Pop and validate the response.
+  uint32_t len;
+  CHECK_RETHROW(pop_used_virtio_queue(queue, &desc, &len));
+  CHECK_RETHROW(validate_used_response(queue, desc, len));
+
+cleanup:
+  if (desc != VIRTIO_INVALID_DESC) {
+    free_request(queue, desc);
+  }
+
   return err;
 }
