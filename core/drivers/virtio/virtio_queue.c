@@ -9,7 +9,7 @@
  * Set the pointers of the parts of the split virtqueue in the device's common
  * configuration.
  */
-static void configure_virtio_blk_queue_ptrs(struct virtio_pci_common_cfg* common_cfg, struct virtio_queue* queue) {
+static void configure_queue_ptrs(struct virtio_pci_common_cfg* common_cfg, struct virtio_queue* queue) {
   write_mb16(&common_cfg->queue_select, queue->num);
 
   write32(&common_cfg->queue_desc_lo, (uint32_t)(uintptr_t)queue->desc);
@@ -29,7 +29,7 @@ static void configure_virtio_blk_queue_ptrs(struct virtio_pci_common_cfg* common
  * available queue. The offset is calculated using the off and multiplier values
  * found in the notification capability.
  */
-static err_t init_virtio_blk_queue_notify_off(struct virtio_blk_dev* virtio_blk_dev) {
+static err_t init_queue_notify_off(struct virtio_blk_dev* virtio_blk_dev) {
   err_t err = SUCCESS;
 
   CHECK(virtio_blk_dev->notify.off != 0);
@@ -71,7 +71,7 @@ err_t init_virtio_blk_queue(struct virtio_blk_dev* virtio_blk_dev) {
 
   // Set the desc, avail, and used pointers in the device's common configuration
   // to reflect the new queue.
-  configure_virtio_blk_queue_ptrs(virtio_blk_dev->common_cfg, queue);
+  configure_queue_ptrs(virtio_blk_dev->common_cfg, queue);
 
   // Every unused descriptor points at the next unused descriptor. This creates
   // a linked list of all the unused descriptors.
@@ -86,7 +86,7 @@ err_t init_virtio_blk_queue(struct virtio_blk_dev* virtio_blk_dev) {
 
   queue->seen_used = 0;
 
-  CHECK_RETHROW(init_virtio_blk_queue_notify_off(virtio_blk_dev));
+  CHECK_RETHROW(init_queue_notify_off(virtio_blk_dev));
 
   // Finally enable the queue.
   write_mb16(&virtio_blk_dev->common_cfg->queue_enable, 1);
@@ -129,68 +129,19 @@ void free_queue_desc(struct virtio_queue* queue, uint16_t desc) {
   queue->free_head = desc;
 }
 
-bool is_unseen_used_virtio_blk(struct virtio_queue* queue) {
+bool is_unseen_used_virtio_queue(struct virtio_queue* queue) {
   return queue->seen_used != read16(&queue->used->idx);
 }
 
-err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out, uint32_t* len_out) {
+err_t pop_used_virtio_queue(struct virtio_queue* queue, uint16_t* desc_out, uint32_t* len_out) {
   err_t err = SUCCESS;
 
-  CHECK(is_unseen_used_virtio_blk(queue));
+  CHECK(is_unseen_used_virtio_queue(queue));
 
   *desc_out = (uint16_t)read32(&queue->used->ring[queue->seen_used % queue->size].id);
   *len_out = read32(&queue->used->ring[queue->seen_used % queue->size].len);
 
   queue->seen_used++;
-
-cleanup:
-  return err;
-}
-
-err_t validate_used_virtio(struct virtio_queue* queue, uint16_t desc, uint32_t len) {
-  err_t err = SUCCESS;
-  uint16_t desc1 = VIRTIO_INVALID_DESC;
-  uint16_t desc2 = VIRTIO_INVALID_DESC;
-  uint16_t desc3 = VIRTIO_INVALID_DESC;
-
-  // The response must be a chain of 3 descriptors.
-  desc1 = desc;
-  CHECK(queue->desc[desc1].flags & VIRTQ_DESC_F_NEXT);
-  desc2 = queue->desc[desc1].next;
-  CHECK(queue->desc[desc2].flags & VIRTQ_DESC_F_NEXT);
-  desc3 = queue->desc[desc2].next;
-  CHECK(queue->desc[desc3].flags & VIRTQ_DESC_F_WRITE);
-
-  // Validate the response status.
-  CHECK(*(uint8_t*)queue->desc[desc3].addr == VIRTIO_BLK_S_OK);
-
-  // The given length equals the amount of data the device has written. We
-  // expect every write-only descriptor to be fully written to.
-  len -= queue->desc[desc3].len;
-  if (queue->desc[desc2].flags & VIRTQ_DESC_F_WRITE) {
-    len -= queue->desc[desc2].len;
-  }
-  CHECK(len == 0);
-
-cleanup:
-  free_queue_desc(queue, desc1);
-  free_queue_desc(queue, desc2);
-  free_queue_desc(queue, desc3);
-  return err;
-}
-
-err_t consume_response_virtio(struct virtio_queue* queue) {
-  err_t err = SUCCESS;
-
-  // Wait for a response.
-  while (!is_unseen_used_virtio_blk(queue)) {
-  }
-
-  // Pop and validate the response.
-  uint16_t desc;
-  uint32_t len;
-  CHECK_RETHROW(pop_used_virtio(queue, &desc, &len));
-  CHECK_RETHROW(validate_used_virtio(queue, desc, len));
 
 cleanup:
   return err;

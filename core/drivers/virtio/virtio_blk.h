@@ -70,6 +70,14 @@ err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, ui
  */
 err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, uint8_t* data, size_t size);
 
+/**
+ * Waits for a response, then pops and validates it.
+ * The response is discarded.
+ * This is used to receive an acknowledgment that a
+ * request has completed successfully.
+ */
+err_t consume_response_virtio_blk(struct virtio_blk_dev* virtio_blk_dev);
+
 // -----------------------------------------------
 // ----- VIRTIO CONSTANTS FROM SPECIFICATION -----
 // -----------------------------------------------
