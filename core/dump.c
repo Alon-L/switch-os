@@ -213,7 +213,7 @@ cleanup:
   return err;
 }
 
-#define SWITCH_BUF_SIZE (4 * 1024 * 1024)
+#define SWITCH_BUF_SIZE (8 * 1024 * 1024)
 
 /**
  * Switch a memory area on the disk with the memory in RAM.
