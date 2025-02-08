@@ -1,6 +1,7 @@
 #include <uacpi/event.h>
 #include <uacpi/sleep.h>
 
+#include "alloc.h"
 #include "core/consts.h"
 #include "core/header.h"
 #include "drivers/virtio/virtio_blk.h"
@@ -70,6 +71,9 @@ __attribute__((noreturn)) void core_main(void) {
   (void)err;
 
   TRACE("Running switch os core...\n");
+
+  core_init_allocators();
+
   // TODO: Validate g_core_header.
 
   struct virtio_blk_dev virtio_blk_dev;
