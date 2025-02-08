@@ -1,5 +1,6 @@
 #include "configure_core_header.h"
 
+#include <linux/ioport.h>
 #include <linux/pci.h>
 #include <linux/pci_regs.h>
 #include <linux/types.h>
@@ -67,6 +68,53 @@ cleanup:
   return err;
 }
 
+static int walk_iomem_cb(struct resource* res, void* arg) {
+  // Validate the area has positive size.
+  if (res->end <= res->start) {
+    return -EINVAL;
+  }
+  size_t res_size = res->end + 1 - res->start;
+
+  // Linux sometimes splits a memory area into several contiguous memory areas.
+  // Defragment this split.
+  if (g_core_header->ram_areas_size >= 1) {
+    struct mem_area* prev =
+      &g_core_header->ram_areas[g_core_header->ram_areas_size - 1];
+    // Check if current area is a continuation of the previous area.
+    if (prev->start + prev->size == res->start) {
+      prev->size += res_size;
+      return 0;
+    }
+  }
+
+  if (g_core_header->ram_areas_size >= ARRAY_SIZE(g_core_header->ram_areas)) {
+    return -ENOMEM;
+  }
+
+  struct mem_area* area =
+    &g_core_header->ram_areas[g_core_header->ram_areas_size++];
+
+  area->start = res->start;
+  area->size = res_size;
+
+  return 0;
+}
+
+static err_t fill_ram_areas(void) {
+  err_t err = SUCCESS;
+
+  g_core_header->ram_areas_size = 0;
+
+  // Call `walk_iomem_cb` for every memory area of type "System RAM" (see
+  // kernel function `walk_system_ram_res`).
+  CHECK(walk_iomem_res_desc(IORES_DESC_NONE,
+                            IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY, 0, -1,
+                            NULL, &walk_iomem_cb) == 0);
+
+cleanup:
+  return err;
+}
+
 err_t configure_core_header(void) {
   err_t err = SUCCESS;
 
@@ -75,6 +123,7 @@ err_t configure_core_header(void) {
   CHECK_RETHROW(fill_rsdp());
   CHECK_RETHROW(fill_disk_pci());
   CHECK_RETHROW(fill_original_waking_vector());
+  CHECK_RETHROW(fill_ram_areas());
 
 cleanup:
   return err;

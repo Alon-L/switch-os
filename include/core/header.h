@@ -10,11 +10,16 @@
 #include <linux/kernel.h>
 #endif
 
+struct mem_area {
+  uint64_t start;
+  uint64_t size;
+};
+
 typedef int (*core_start_t)(void);
 
 struct core_header {
-  // [READ]   A magic filled during linkage to validate the beginning of the
-  //          core header.
+  // [READ]   A magic to validate the beginning of the core header. Must be
+  //          `CORE_HEADER_MAGIC`.
   const uint32_t magic;
 
   // [WRITE]  The original waking vector of the kernel that entered core. The
@@ -41,7 +46,12 @@ struct core_header {
     // communication with the device.
     uint32_t bars[6];
   } disk_pci;
-} __attribute__((packed));
+
+  // [WRITE]  All the memory areas listed as RAM. Core uses these areas to
+  //          create the memory dump. The module must fill this.
+  uint8_t ram_areas_size;
+  struct mem_area ram_areas[32];
+};
 
 static inline bool is_core_header_magic_valid(struct core_header* core_header) {
   return core_header->magic == CORE_HEADER_MAGIC;

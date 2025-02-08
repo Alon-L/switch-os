@@ -3,6 +3,9 @@
 
 #include "core/consts.h"
 #include "core/header.h"
+#include "drivers/virtio/virtio_blk.h"
+#include "dump.h"
+#include "error.h"
 #include "trace.h"
 
 __attribute__((section(".core_header"))) struct core_header g_core_header = {
@@ -10,6 +13,7 @@ __attribute__((section(".core_header"))) struct core_header g_core_header = {
 };
 
 int setup_acpi(void) {
+  // TODO: Remove all these comments
   /*
    * Start with this as the first step of the initialization. This loads all
    * tables, brings the event subsystem online, and enters ACPI mode. We pass
@@ -62,8 +66,27 @@ int setup_acpi(void) {
 }
 
 __attribute__((noreturn)) void core_main(void) {
-  TRACE("Running switch os core...\n");
+  err_t err = SUCCESS;
+  (void)err;
 
+  TRACE("Running switch os core...\n");
+  // TODO: Validate g_core_header.
+
+  struct virtio_blk_dev virtio_blk_dev;
+  CHECK_RETHROW(init_virtio_blk_dev(&virtio_blk_dev));
+
+  bool contains_dump = false;
+  CHECK_RETHROW(does_disk_contain_dump(&virtio_blk_dev, &contains_dump));
+
+  if (contains_dump) {
+    TRACE("Dump found on disk. Loading...\n");
+    CHECK_RETHROW(disk_load_dump(&virtio_blk_dev));
+  } else {
+    TRACE("Dump not found on disk. Storing...\n");
+    CHECK_RETHROW(disk_store_dump(&virtio_blk_dev));
+  }
+
+cleanup:
   setup_acpi();
   uacpi_set_waking_vector(g_core_header.original_waking_vector, 0);
   uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S3);

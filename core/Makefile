@@ -22,6 +22,7 @@ LDFLAGS += -lgcc
 OBJS += core.o
 OBJS += pci.o pci_utils.o
 OBJS += alloc.o
+OBJS += dump.o
 
 include drivers/Makefile
 OBJS += $(addprefix drivers/,$(DRIVERS_OBJS))
