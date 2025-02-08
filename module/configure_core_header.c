@@ -17,8 +17,7 @@ extern struct core_header* g_core_header;
 static err_t fill_disk_pci(void) {
   err_t err = SUCCESS;
 
-  struct pci_dev* pci_dev =
-    pci_get_device(DISK_PCI_VENDOR_ID, DISK_PCI_DEVICE_ID, NULL);
+  struct pci_dev* pci_dev = pci_get_device(DISK_PCI_VENDOR_ID, DISK_PCI_DEVICE_ID, NULL);
   CHECK(pci_dev != NULL);
 
   g_core_header->disk_pci.addr.bus = pci_dev->bus->number;
@@ -31,14 +30,12 @@ static err_t fill_disk_pci(void) {
     // pci device, and stores its state in `pci_dev->saved_config_space`. Read
     // from there.
     for (size_t i = 0; i < ARRAY_SIZE(g_core_header->disk_pci.bars); i++) {
-      g_core_header->disk_pci.bars[i] =
-        pci_dev->saved_config_space[i + PCI_BASE_ADDRESS_0 / 4];
+      g_core_header->disk_pci.bars[i] = pci_dev->saved_config_space[i + PCI_BASE_ADDRESS_0 / 4];
     }
   } else {
     // Store the bars directly from the pci device.
     for (size_t i = 0; i < ARRAY_SIZE(g_core_header->disk_pci.bars); i++) {
-      pci_read_config_dword(pci_dev, PCI_BASE_ADDRESS_0 + 4 * i,
-                            &g_core_header->disk_pci.bars[i]);
+      pci_read_config_dword(pci_dev, PCI_BASE_ADDRESS_0 + 4 * i, &g_core_header->disk_pci.bars[i]);
     }
   }
 

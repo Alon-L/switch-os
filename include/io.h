@@ -10,28 +10,21 @@
     return value;                                                         \
   }
 
-#define BUILD_IO_OUT(name, type)                                        \
-  static inline __attribute__((always_inline)) void name(uint16_t port, \
-                                                         type value) {  \
-    asm volatile("out %0, %1" : : "Nd"(port), "a"(value));              \
+#define BUILD_IO_OUT(name, type)                                                      \
+  static inline __attribute__((always_inline)) void name(uint16_t port, type value) { \
+    asm volatile("out %0, %1" : : "Nd"(port), "a"(value));                            \
   }
 
-#define BUILD_MMIO_READ(name, type, barrier)              \
-  static inline __attribute__((always_inline)) type name( \
-    volatile void* addr) {                                \
-    type value;                                           \
-    asm volatile("mov %0, %1"                             \
-                 : "=r"(value)                            \
-                 : "m"(*(volatile type*)addr)barrier);    \
-    return value;                                         \
+#define BUILD_MMIO_READ(name, type, barrier)                                      \
+  static inline __attribute__((always_inline)) type name(volatile void* addr) {   \
+    type value;                                                                   \
+    asm volatile("mov %0, %1" : "=r"(value) : "m"(*(volatile type*)addr)barrier); \
+    return value;                                                                 \
   }
 
-#define BUILD_MMIO_WRITE(name, type, barrier)                                 \
-  static inline __attribute__((always_inline)) void name(volatile void* addr, \
-                                                         type value) {        \
-    asm volatile("mov %0, %1"                                                 \
-                 :                                                            \
-                 : "m"(*(volatile type*)addr), "r"(value)barrier);            \
+#define BUILD_MMIO_WRITE(name, type, barrier)                                               \
+  static inline __attribute__((always_inline)) void name(volatile void* addr, type value) { \
+    asm volatile("mov %0, %1" : : "m"(*(volatile type*)addr), "r"(value)barrier);           \
   }
 
 BUILD_IO_IN(in8, uint8_t);

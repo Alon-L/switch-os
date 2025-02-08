@@ -48,8 +48,7 @@ err_t init_pci_dev(struct pci_dev* pci_dev);
  * @param lookup_id     - The requested vendor ID and device ID for the pci
  * device. device.
  */
-err_t lookup_pci_dev(struct pci_dev* pci_dev,
-                     const struct pci_dev_id* lookup_id);
+err_t lookup_pci_dev(struct pci_dev* pci_dev, const struct pci_dev_id* lookup_id);
 
 /**
  * Returns a `struct pci_bar` that represents the given bar number.
@@ -57,8 +56,7 @@ err_t lookup_pci_dev(struct pci_dev* pci_dev,
  * @param bar_num       - The bar number to retrieve.
  * @param pci_bar_out   - The pci bar struct for the given bar number.
  */
-err_t pci_get_bar(const struct pci_dev* pci_dev, uint8_t bar_num,
-                  struct pci_bar* pci_bar_out);
+err_t pci_get_bar(const struct pci_dev* pci_dev, uint8_t bar_num, struct pci_bar* pci_bar_out);
 
 struct pci_cap_iter {
   const struct pci_dev* pci_dev;
@@ -72,8 +70,7 @@ struct pci_cap_iter {
  * and the offset of the first capability. The offset is set to 0 if the
  * capabilities list is empty.
  */
-void pci_cap_iter_init(const struct pci_dev* pci_dev,
-                       struct pci_cap_iter* iter);
+void pci_cap_iter_init(const struct pci_dev* pci_dev, struct pci_cap_iter* iter);
 
 /**
  * Find next pci capability for the iterator.
@@ -85,8 +82,7 @@ void pci_cap_iter_next(struct pci_cap_iter* iter);
 /**
  * Iterate over all the capabilities of a pci device.
  */
-#define ITERATE_PCI_CAPABILITIES(pci_dev, iter_var)                     \
-  for (pci_cap_iter_init(&(pci_dev), &(iter_var)); (iter_var).off != 0; \
-       pci_cap_iter_next(&(iter_var)))
+#define ITERATE_PCI_CAPABILITIES(pci_dev, iter_var) \
+  for (pci_cap_iter_init(&(pci_dev), &(iter_var)); (iter_var).off != 0; pci_cap_iter_next(&(iter_var)))
 
 #endif

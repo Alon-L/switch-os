@@ -27,21 +27,17 @@ static err_t parse_virtio_blk_caps(struct virtio_blk_dev* virtio_blk_dev) {
   err_t err = SUCCESS;
 
   // Make sure the capability list is available.
-  CHECK((pci_read_16(&virtio_blk_dev->pci_dev.addr, PCI_STATUS) &
-         PCI_STATUS_CAP_LIST) != 0);
+  CHECK((pci_read_16(&virtio_blk_dev->pci_dev.addr, PCI_STATUS) & PCI_STATUS_CAP_LIST) != 0);
 
   struct pci_cap_iter iter;
   ITERATE_PCI_CAPABILITIES(virtio_blk_dev->pci_dev, iter) {
     // Every virtio capability vendor must be `0x09`.
-    if (pci_read_8(&virtio_blk_dev->pci_dev.addr,
-                   iter.off + offsetof(struct virtio_pci_cap, cap_vndr)) !=
+    if (pci_read_8(&virtio_blk_dev->pci_dev.addr, iter.off + offsetof(struct virtio_pci_cap, cap_vndr)) !=
         VIRTIO_PCI_CAP_VENDOR) {
       continue;
     }
 
-    uint8_t cfg_type =
-      pci_read_8(&virtio_blk_dev->pci_dev.addr,
-                 iter.off + offsetof(struct virtio_pci_cap, cfg_type));
+    uint8_t cfg_type = pci_read_8(&virtio_blk_dev->pci_dev.addr, iter.off + offsetof(struct virtio_pci_cap, cfg_type));
 
     // Validate the config type.
     switch (cfg_type) {
@@ -59,9 +55,7 @@ static err_t parse_virtio_blk_caps(struct virtio_blk_dev* virtio_blk_dev) {
       }
     }
 
-    uint8_t bar_num =
-      pci_read_8(&virtio_blk_dev->pci_dev.addr,
-                 iter.off + offsetof(struct virtio_pci_cap, bar));
+    uint8_t bar_num = pci_read_8(&virtio_blk_dev->pci_dev.addr, iter.off + offsetof(struct virtio_pci_cap, bar));
 
     struct pci_bar pci_bar;
     CHECK_RETHROW(pci_get_bar(&virtio_blk_dev->pci_dev, bar_num, &pci_bar));
@@ -72,8 +66,7 @@ static err_t parse_virtio_blk_caps(struct virtio_blk_dev* virtio_blk_dev) {
         // TODO: Support IO bars too
         CHECK(pci_bar.type == PCI_BAR_MEMORY);
 
-        virtio_blk_dev->common_cfg =
-          (struct virtio_pci_common_cfg*)pci_bar.addr;
+        virtio_blk_dev->common_cfg = (struct virtio_pci_common_cfg*)pci_bar.addr;
         break;
       }
       case VIRTIO_PCI_CAP_NOTIFY_CFG: {
@@ -86,14 +79,11 @@ static err_t parse_virtio_blk_caps(struct virtio_blk_dev* virtio_blk_dev) {
         CHECK(pci_bar.type == PCI_BAR_MEMORY);
 
         uint32_t offset =
-          pci_read_32(&virtio_blk_dev->pci_dev.addr,
-                      iter.off + offsetof(struct virtio_pci_cap, offset));
+          pci_read_32(&virtio_blk_dev->pci_dev.addr, iter.off + offsetof(struct virtio_pci_cap, offset));
         virtio_blk_dev->notify.off = pci_bar.addr + offset;
 
-        virtio_blk_dev->notify.multiplier =
-          pci_read_32(&virtio_blk_dev->pci_dev.addr,
-                      iter.off + offsetof(struct virtio_pci_notify_cap,
-                                          notify_off_multiplier));
+        virtio_blk_dev->notify.multiplier = pci_read_32(
+          &virtio_blk_dev->pci_dev.addr, iter.off + offsetof(struct virtio_pci_notify_cap, notify_off_multiplier));
         break;
       }
     }
@@ -130,31 +120,26 @@ static err_t negotiate_virtio_features(struct virtio_blk_dev* virtio_blk_dev) {
 
   // Query the available device features.
   write_mb32(&virtio_blk_dev->common_cfg->device_feature_select, 0);
-  uint64_t available_features =
-    read_mb32(&virtio_blk_dev->common_cfg->device_feature);
+  uint64_t available_features = read_mb32(&virtio_blk_dev->common_cfg->device_feature);
 
   write_mb32(&virtio_blk_dev->common_cfg->device_feature_select, 1);
-  available_features |=
-    (uint64_t)read_mb32(&virtio_blk_dev->common_cfg->device_feature) >> 32;
+  available_features |= (uint64_t)read_mb32(&virtio_blk_dev->common_cfg->device_feature) >> 32;
 
   // Make sure the device offers all of our requested features.
   CHECK((requested_features & available_features) == requested_features);
 
   // Set the requested features.
   write_mb32(&virtio_blk_dev->common_cfg->driver_feature_select, 0);
-  write_mb32(&virtio_blk_dev->common_cfg->driver_feature,
-             (uint32_t)requested_features);
+  write_mb32(&virtio_blk_dev->common_cfg->driver_feature, (uint32_t)requested_features);
   write_mb32(&virtio_blk_dev->common_cfg->driver_feature_select, 1);
-  write_mb32(&virtio_blk_dev->common_cfg->driver_feature,
-             (uint32_t)(requested_features >> 32));
+  write_mb32(&virtio_blk_dev->common_cfg->driver_feature, (uint32_t)(requested_features >> 32));
 
   // Update the device status.
   virtio_blk_dev->status |= VIRTIO_STATUS_FEATURES_OK;
   write_mb8(&virtio_blk_dev->common_cfg->device_status, virtio_blk_dev->status);
 
   // Make sure the device has accepted our requested features.
-  CHECK(read8(&virtio_blk_dev->common_cfg->device_status) &
-        VIRTIO_STATUS_FEATURES_OK);
+  CHECK(read8(&virtio_blk_dev->common_cfg->device_status) & VIRTIO_STATUS_FEATURES_OK);
 
   virtio_blk_dev->features = requested_features;
 
@@ -183,8 +168,7 @@ err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev) {
   // returning from S3. Since we run before the kernel returns from S3, we
   // have to restore the bars ourselves.
   for (size_t i = 0; i < PCI_BASE_ADDRESS_NUM; i++) {
-    pci_write_32(&virtio_blk_dev->pci_dev.addr, PCI_BASE_ADDRESS_0 + 4 * i,
-                 g_core_header.disk_pci.bars[i]);
+    pci_write_32(&virtio_blk_dev->pci_dev.addr, PCI_BASE_ADDRESS_0 + 4 * i, g_core_header.disk_pci.bars[i]);
   }
 
   // We expect the device to have a normal header.
@@ -198,8 +182,7 @@ err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev) {
   // Enable memory communication with the device.
   // TODO: Once we support IO bars as well, enable `PCI_COMMAND_IO`.
   uint16_t command = pci_read_16(&virtio_blk_dev->pci_dev.addr, PCI_COMMAND);
-  pci_write_16(&virtio_blk_dev->pci_dev.addr, PCI_COMMAND,
-               command | PCI_COMMAND_MEMORY);
+  pci_write_16(&virtio_blk_dev->pci_dev.addr, PCI_COMMAND, command | PCI_COMMAND_MEMORY);
 
   init_virtio_status(virtio_blk_dev);
 
@@ -245,8 +228,7 @@ cleanup:
  * more than a single sector, but the data must be aligned to 512-bytes (sector
  * size).
  */
-static err_t request_virtio_blk(struct virtio_blk_dev* virtio_blk_dev,
-                                uint32_t request_type, uint64_t sector,
+static err_t request_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint32_t request_type, uint64_t sector,
                                 uint8_t* data, size_t size) {
   err_t err = SUCCESS;
   uint16_t desc1 = VIRTIO_INVALID_DESC;
@@ -314,23 +296,19 @@ cleanup:
   return err;
 }
 
-err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
-                      uint8_t* data, size_t size) {
+err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, uint8_t* data, size_t size) {
   err_t err = SUCCESS;
 
-  CHECK_RETHROW(
-    request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_IN, sector, data, size));
+  CHECK_RETHROW(request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_IN, sector, data, size));
 
 cleanup:
   return err;
 }
 
-err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
-                       uint8_t* data, size_t size) {
+err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, uint8_t* data, size_t size) {
   err_t err = SUCCESS;
 
-  CHECK_RETHROW(
-    request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_OUT, sector, data, size));
+  CHECK_RETHROW(request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_OUT, sector, data, size));
 
 cleanup:
   return err;

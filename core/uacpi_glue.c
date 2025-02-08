@@ -18,9 +18,7 @@ uacpi_status uacpi_kernel_get_rsdp(uacpi_phys_addr* out_rsdp_address) {
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_raw_memory_read(uacpi_phys_addr address,
-                                          uacpi_u8 byte_width,
-                                          uacpi_u64* out_value) {
+uacpi_status uacpi_kernel_raw_memory_read(uacpi_phys_addr address, uacpi_u8 byte_width, uacpi_u64* out_value) {
   switch (byte_width) {
     case 1: {
       *out_value = *(uint8_t*)address;
@@ -44,9 +42,7 @@ uacpi_status uacpi_kernel_raw_memory_read(uacpi_phys_addr address,
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_raw_memory_write(uacpi_phys_addr address,
-                                           uacpi_u8 byte_width,
-                                           uacpi_u64 in_value) {
+uacpi_status uacpi_kernel_raw_memory_write(uacpi_phys_addr address, uacpi_u8 byte_width, uacpi_u64 in_value) {
   switch (byte_width) {
     case 1: {
       *(uint8_t*)address = in_value;
@@ -70,10 +66,8 @@ uacpi_status uacpi_kernel_raw_memory_write(uacpi_phys_addr address,
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_pci_device_open(uacpi_pci_address address,
-                                          uacpi_handle* out_handle) {
-  struct pci_dev_addr* pci_dev_addr =
-    uacpi_kernel_alloc(sizeof(struct pci_dev_addr));
+uacpi_status uacpi_kernel_pci_device_open(uacpi_pci_address address, uacpi_handle* out_handle) {
+  struct pci_dev_addr* pci_dev_addr = uacpi_kernel_alloc(sizeof(struct pci_dev_addr));
 
   if (pci_dev_addr == NULL) {
     return UACPI_STATUS_OUT_OF_MEMORY;
@@ -93,8 +87,7 @@ void uacpi_kernel_pci_device_close(uacpi_handle handle) {
   return;
 }
 
-uacpi_status uacpi_kernel_pci_read(uacpi_handle handle, uacpi_size offset,
-                                   uacpi_u8 byte_width, uacpi_u64* value) {
+uacpi_status uacpi_kernel_pci_read(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64* value) {
   struct pci_dev_addr* pci_dev_addr = handle;
 
   switch (byte_width) {
@@ -117,8 +110,7 @@ uacpi_status uacpi_kernel_pci_read(uacpi_handle handle, uacpi_size offset,
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_pci_write(uacpi_handle handle, uacpi_size offset,
-                                    uacpi_u8 byte_width, uacpi_u64 value) {
+uacpi_status uacpi_kernel_pci_write(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 value) {
   struct pci_dev_addr* pci_dev_addr = handle;
 
   switch (byte_width) {
@@ -141,8 +133,7 @@ uacpi_status uacpi_kernel_pci_write(uacpi_handle handle, uacpi_size offset,
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_io_map(uacpi_io_addr base, uacpi_size len,
-                                 uacpi_handle* out_handle) {
+uacpi_status uacpi_kernel_io_map(uacpi_io_addr base, uacpi_size len, uacpi_handle* out_handle) {
   *out_handle = (uacpi_handle)(base);
   return UACPI_STATUS_OK;
 }
@@ -151,8 +142,7 @@ void uacpi_kernel_io_unmap(uacpi_handle handle) {
   return;
 }
 
-uacpi_status uacpi_kernel_io_read(uacpi_handle handle, uacpi_size offset,
-                                  uacpi_u8 byte_width, uacpi_u64* value) {
+uacpi_status uacpi_kernel_io_read(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64* value) {
   uint16_t p = (uacpi_io_addr)handle + offset;
 
   switch (byte_width) {
@@ -175,8 +165,7 @@ uacpi_status uacpi_kernel_io_read(uacpi_handle handle, uacpi_size offset,
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_io_write(uacpi_handle handle, uacpi_size offset,
-                                   uacpi_u8 byte_width, uacpi_u64 value) {
+uacpi_status uacpi_kernel_io_write(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 value) {
   uint16_t p = (uacpi_io_addr)handle + offset;
 
   switch (byte_width) {
@@ -280,19 +269,16 @@ void uacpi_kernel_reset_event(uacpi_handle handle) {
   return;
 }
 
-uacpi_status uacpi_kernel_handle_firmware_request(
-  uacpi_firmware_request* request) {
+uacpi_status uacpi_kernel_handle_firmware_request(uacpi_firmware_request* request) {
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
-uacpi_status uacpi_kernel_install_interrupt_handler(
-  uacpi_u32 irq, uacpi_interrupt_handler handle, uacpi_handle ctx,
-  uacpi_handle* out_irq_handle) {
+uacpi_status uacpi_kernel_install_interrupt_handler(uacpi_u32 irq, uacpi_interrupt_handler handle, uacpi_handle ctx,
+                                                    uacpi_handle* out_irq_handle) {
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_uninstall_interrupt_handler(
-  uacpi_interrupt_handler handle, uacpi_handle irq_handle) {
+uacpi_status uacpi_kernel_uninstall_interrupt_handler(uacpi_interrupt_handler handle, uacpi_handle irq_handle) {
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
@@ -312,9 +298,7 @@ void uacpi_kernel_unlock_spinlock(uacpi_handle handle, uacpi_cpu_flags flags) {
   return;
 }
 
-uacpi_status uacpi_kernel_schedule_work(uacpi_work_type type,
-                                        uacpi_work_handler handler,
-                                        uacpi_handle ctx) {
+uacpi_status uacpi_kernel_schedule_work(uacpi_work_type type, uacpi_work_handler handler, uacpi_handle ctx) {
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 

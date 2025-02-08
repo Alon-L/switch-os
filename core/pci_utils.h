@@ -29,13 +29,13 @@ struct pci_dev_addr {
 #define PCI_HEADER_TYPE_BRIDGE 1
 #define PCI_HEADER_TYPE_CARDBUS 2
 
-#define PCI_STATUS_IMM_READY 0x01  // Immediate Readiness
-#define PCI_STATUS_INTERRUPT 0x08  // Interrupt status
-#define PCI_STATUS_CAP_LIST 0x10   // Support Capability List
-#define PCI_STATUS_66MHZ 0x20      // Support 66 MHz PCI 2.1 bus
-#define PCI_STATUS_UDF 0x40        // Support User Definable Features [obsolete]
-#define PCI_STATUS_FAST_BACK 0x80  // Accept fast-back to back
-#define PCI_STATUS_PARITY 0x100    // Detected parity error
+#define PCI_STATUS_IMM_READY 0x01     // Immediate Readiness
+#define PCI_STATUS_INTERRUPT 0x08     // Interrupt status
+#define PCI_STATUS_CAP_LIST 0x10      // Support Capability List
+#define PCI_STATUS_66MHZ 0x20         // Support 66 MHz PCI 2.1 bus
+#define PCI_STATUS_UDF 0x40           // Support User Definable Features [obsolete]
+#define PCI_STATUS_FAST_BACK 0x80     // Accept fast-back to back
+#define PCI_STATUS_PARITY 0x100       // Detected parity error
 #define PCI_STATUS_DEVSEL_MASK 0x600  // DEVSEL timing
 #define PCI_STATUS_DEVSEL_FAST 0x000
 #define PCI_STATUS_DEVSEL_MEDIUM 0x200
@@ -75,11 +75,9 @@ struct pci_dev_addr {
  * @param offset    - The offset to write to
  * @param value     - The value to write into the offset
  */
-#define DECLARE_PCI_OP(num, type)                               \
-  type pci_read_##num(const struct pci_dev_addr* pci_dev_addr,  \
-                      uint32_t offset);                         \
-  void pci_write_##num(const struct pci_dev_addr* pci_dev_addr, \
-                       uint32_t offset, type value)
+#define DECLARE_PCI_OP(num, type)                                                \
+  type pci_read_##num(const struct pci_dev_addr* pci_dev_addr, uint32_t offset); \
+  void pci_write_##num(const struct pci_dev_addr* pci_dev_addr, uint32_t offset, type value)
 
 DECLARE_PCI_OP(8, uint8_t);
 DECLARE_PCI_OP(16, uint16_t);

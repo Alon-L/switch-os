@@ -46,8 +46,7 @@ bool is_unseen_used_virtio_blk(struct virtio_queue* queue);
  * @param len_out   - The length of data the device has written to the
  * descriptor.
  */
-err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out,
-                      uint32_t* len_out);
+err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out, uint32_t* len_out);
 
 /**
  * Validate a used descriptor chain response to a read/write request.
@@ -59,8 +58,7 @@ err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out,
  * @param len   - The length of data the device has written to the descriptors.
  * This is obtained from `pop_used_virtio_blk`.
  */
-err_t validate_used_virtio(struct virtio_queue* queue, uint16_t desc,
-                           uint32_t len);
+err_t validate_used_virtio(struct virtio_queue* queue, uint16_t desc, uint32_t len);
 
 /**
  * Waits for a response, then pops and validates it.

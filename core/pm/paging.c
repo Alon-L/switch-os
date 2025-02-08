@@ -76,8 +76,7 @@ static void setup_pdpt(uint64_t* pdpt, uint32_t pdpt_idx) {
   for (uint32_t i = 0; i < TABLE_ENTRY_NUM; i++) {
     uint64_t* pdpt_entry = pdpt + i;
 
-    uint64_t relevant_page_addr =
-      GB_PAGE_SIZE * ((pdpt_idx * TABLE_ENTRY_NUM) + i);
+    uint64_t relevant_page_addr = GB_PAGE_SIZE * ((pdpt_idx * TABLE_ENTRY_NUM) + i);
 
     *pdpt_entry = build_pdpt_entry(relevant_page_addr);
   }

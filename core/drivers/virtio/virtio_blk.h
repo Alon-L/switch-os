@@ -58,8 +58,7 @@ err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev);
  * @param size           - The size of the data to read. Must be aligned to 512
  * bytes (sector size).
  */
-err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
-                      uint8_t* data, size_t size);
+err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, uint8_t* data, size_t size);
 
 /**
  * Write sector(s) to the virtio blk device.
@@ -69,8 +68,7 @@ err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
  * @param size           - The size of the data to write. Must be aligned to 512
  * bytes (sector size).
  */
-err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector,
-                       uint8_t* data, size_t size);
+err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, uint8_t* data, size_t size);
 
 // -----------------------------------------------
 // ----- VIRTIO CONSTANTS FROM SPECIFICATION -----
@@ -186,8 +184,7 @@ struct virtio_blk_req {
 } __attribute__((packed));
 
 #define VIRTIO_BLK_REQ_HEADER_SIZE (offsetof(struct virtio_blk_req, status))
-#define VIRTIO_BLK_REQ_FOOTER_SIZE \
-  (sizeof(struct virtio_blk_req) - VIRTIO_BLK_REQ_HEADER_SIZE)
+#define VIRTIO_BLK_REQ_FOOTER_SIZE (sizeof(struct virtio_blk_req) - VIRTIO_BLK_REQ_HEADER_SIZE)
 
 #define VIRTIO_BLK_T_IN 0
 #define VIRTIO_BLK_T_OUT 1

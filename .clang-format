@@ -1,3 +1,4 @@
 BasedOnStyle: Google
 AllowShortFunctionsOnASingleLine: "None"
 ContinuationIndentWidth: "2"
+ColumnLimit: 120

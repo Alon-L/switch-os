@@ -11,18 +11,15 @@ err_t init_pci_dev(struct pci_dev* pci_dev) {
   pci_dev->vendor_id = pci_read_16(&pci_dev->addr, PCI_VENDOR_ID);
   pci_dev->device_id = pci_read_16(&pci_dev->addr, PCI_DEVICE_ID);
 
-  pci_dev->header_type =
-    pci_read_8(&pci_dev->addr, PCI_HEADER_TYPE) & PCI_HEADER_TYPE_MASK;
-  CHECK(pci_dev->header_type == PCI_HEADER_TYPE_NORMAL ||
-        pci_dev->header_type == PCI_HEADER_TYPE_BRIDGE ||
+  pci_dev->header_type = pci_read_8(&pci_dev->addr, PCI_HEADER_TYPE) & PCI_HEADER_TYPE_MASK;
+  CHECK(pci_dev->header_type == PCI_HEADER_TYPE_NORMAL || pci_dev->header_type == PCI_HEADER_TYPE_BRIDGE ||
         pci_dev->header_type == PCI_HEADER_TYPE_CARDBUS);
 
 cleanup:
   return err;
 }
 
-err_t lookup_pci_dev(struct pci_dev* pci_dev,
-                     const struct pci_dev_id* lookup_id) {
+err_t lookup_pci_dev(struct pci_dev* pci_dev, const struct pci_dev_id* lookup_id) {
   err_t err = SUCCESS;
 
   // Iterate over all pci busses and try to find a pci device that matches the
@@ -41,8 +38,7 @@ err_t lookup_pci_dev(struct pci_dev* pci_dev,
         }
         uint16_t device_id = pci_read_16(&pci_dev->addr, PCI_DEVICE_ID);
 
-        if (lookup_id->vendor_id == vendor_id &&
-            lookup_id->device_id == device_id) {
+        if (lookup_id->vendor_id == vendor_id && lookup_id->device_id == device_id) {
           CHECK_RETHROW(init_pci_dev(pci_dev));
           goto cleanup;
         }
@@ -57,8 +53,7 @@ cleanup:
   return err;
 }
 
-err_t pci_get_bar(const struct pci_dev* pci_dev, uint8_t bar_num,
-                  struct pci_bar* pci_bar_out) {
+err_t pci_get_bar(const struct pci_dev* pci_dev, uint8_t bar_num, struct pci_bar* pci_bar_out) {
   err_t err = SUCCESS;
 
   CHECK(bar_num < PCI_BASE_ADDRESS_NUM);
@@ -84,12 +79,10 @@ err_t pci_get_bar(const struct pci_dev* pci_dev, uint8_t bar_num,
   }
 
   // Concatenate this bar with the next one if this is a 64 bit memory bar.
-  if (pci_bar_out->type == PCI_BAR_MEMORY &&
-      (bar & PCI_BASE_ADDRESS_MEM_TYPE_MASK) == PCI_BASE_ADDRESS_MEM_TYPE_64) {
+  if (pci_bar_out->type == PCI_BAR_MEMORY && (bar & PCI_BASE_ADDRESS_MEM_TYPE_MASK) == PCI_BASE_ADDRESS_MEM_TYPE_64) {
     CHECK(bar_num + 1 < PCI_BASE_ADDRESS_NUM);
 
-    uint32_t bar_next =
-      pci_read_32(&pci_dev->addr, PCI_BASE_ADDRESS_0 + (bar_num + 1) * 4);
+    uint32_t bar_next = pci_read_32(&pci_dev->addr, PCI_BASE_ADDRESS_0 + (bar_num + 1) * 4);
 
     pci_bar_out->addr += (uint64_t)bar_next << 32;
   }
@@ -119,8 +112,7 @@ static bool is_cap_valid(const struct pci_dev* pci_dev, uint8_t cap_off) {
   return true;
 }
 
-void pci_cap_iter_init(const struct pci_dev* pci_dev,
-                       struct pci_cap_iter* iter) {
+void pci_cap_iter_init(const struct pci_dev* pci_dev, struct pci_cap_iter* iter) {
   iter->pci_dev = pci_dev;
 
   uint8_t first_cap_off = pci_read_8(&pci_dev->addr, PCI_CAPABILITY_LIST);
@@ -134,8 +126,7 @@ void pci_cap_iter_init(const struct pci_dev* pci_dev,
 void pci_cap_iter_next(struct pci_cap_iter* iter) {
   // The next capability pointer field inside a capability has an offset of
   // `PCI_CAPABILITY_PTR_OFFSET`.
-  uint8_t next_cap_off =
-    pci_read_8(&iter->pci_dev->addr, iter->off + PCI_CAPABILITY_PTR_OFFSET);
+  uint8_t next_cap_off = pci_read_8(&iter->pci_dev->addr, iter->off + PCI_CAPABILITY_PTR_OFFSET);
 
   if (is_cap_valid(iter->pci_dev, next_cap_off)) {
     iter->off = next_cap_off;

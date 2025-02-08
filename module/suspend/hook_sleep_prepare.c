@@ -14,8 +14,7 @@
  * `get_acpi_waking_vector`, and override the waking vector to
  * core's wakeup procedure.
  */
-static int my_acpi_sleep_prepare(struct kretprobe_instance* ri,
-                                 struct pt_regs* regs) {
+static int my_acpi_sleep_prepare(struct kretprobe_instance* ri, struct pt_regs* regs) {
   if (configure_core_header() != SUCCESS) {
     return 0;
   }

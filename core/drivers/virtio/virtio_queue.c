@@ -9,20 +9,17 @@
  * Set the pointers of the parts of the split virtqueue in the device's common
  * configuration.
  */
-static void configure_virtio_blk_queue_ptrs(
-  struct virtio_pci_common_cfg* common_cfg, struct virtio_queue* queue) {
+static void configure_virtio_blk_queue_ptrs(struct virtio_pci_common_cfg* common_cfg, struct virtio_queue* queue) {
   write_mb16(&common_cfg->queue_select, queue->num);
 
   write32(&common_cfg->queue_desc_lo, (uint32_t)(uintptr_t)queue->desc);
   write32(&common_cfg->queue_desc_hi, (uint32_t)((uintptr_t)queue->desc >> 32));
 
   write32(&common_cfg->queue_driver_lo, (uint32_t)(uintptr_t)queue->avail);
-  write32(&common_cfg->queue_driver_hi,
-          (uint32_t)((uintptr_t)queue->avail >> 32));
+  write32(&common_cfg->queue_driver_hi, (uint32_t)((uintptr_t)queue->avail >> 32));
 
   write32(&common_cfg->queue_device_lo, (uint32_t)(uintptr_t)queue->used);
-  write32(&common_cfg->queue_device_hi,
-          (uint32_t)((uintptr_t)queue->used >> 32));
+  write32(&common_cfg->queue_device_hi, (uint32_t)((uintptr_t)queue->used >> 32));
 
   mb();
 }
@@ -32,18 +29,14 @@ static void configure_virtio_blk_queue_ptrs(
  * available queue. The offset is calculated using the off and multiplier values
  * found in the notification capability.
  */
-static err_t init_virtio_blk_queue_notify_off(
-  struct virtio_blk_dev* virtio_blk_dev) {
+static err_t init_virtio_blk_queue_notify_off(struct virtio_blk_dev* virtio_blk_dev) {
   err_t err = SUCCESS;
 
   CHECK(virtio_blk_dev->notify.off != 0);
 
-  uint16_t queue_notify_off =
-    read16(&virtio_blk_dev->common_cfg->queue_notify_off);
+  uint16_t queue_notify_off = read16(&virtio_blk_dev->common_cfg->queue_notify_off);
 
-  virtio_blk_dev->queue.notify_off =
-    virtio_blk_dev->notify.off +
-    queue_notify_off * virtio_blk_dev->notify.multiplier;
+  virtio_blk_dev->queue.notify_off = virtio_blk_dev->notify.off + queue_notify_off * virtio_blk_dev->notify.multiplier;
 
 cleanup:
   return err;
@@ -64,11 +57,9 @@ err_t init_virtio_blk_queue(struct virtio_blk_dev* virtio_blk_dev) {
   // Allocate the split virtqueue parts.
   queue->desc = core_calloc(sizeof(struct virtq_desc), queue_size);
   CHECK(queue->desc != NULL);
-  queue->avail =
-    core_calloc(sizeof(struct virtq_avail) + sizeof(uint16_t) * queue_size, 1);
+  queue->avail = core_calloc(sizeof(struct virtq_avail) + sizeof(uint16_t) * queue_size, 1);
   CHECK(queue->avail != NULL);
-  queue->used = core_calloc(
-    sizeof(struct virtq_used) + sizeof(struct virtq_used_elem) * queue_size, 1);
+  queue->used = core_calloc(sizeof(struct virtq_used) + sizeof(struct virtq_used_elem) * queue_size, 1);
   CHECK(queue->used != NULL);
 
   // We don't have interrupts enabled, and we wish to not get notifications
@@ -142,8 +133,7 @@ bool is_unseen_used_virtio_blk(struct virtio_queue* queue) {
   return queue->seen_used != read16(&queue->used->idx);
 }
 
-err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out,
-                      uint32_t* len_out) {
+err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out, uint32_t* len_out) {
   err_t err = SUCCESS;
 
   CHECK(is_unseen_used_virtio_blk(queue));
@@ -158,8 +148,7 @@ cleanup:
   return err;
 }
 
-err_t validate_used_virtio(struct virtio_queue* queue, uint16_t desc,
-                           uint32_t len) {
+err_t validate_used_virtio(struct virtio_queue* queue, uint16_t desc, uint32_t len) {
   err_t err = SUCCESS;
   uint16_t desc1 = VIRTIO_INVALID_DESC;
   uint16_t desc2 = VIRTIO_INVALID_DESC;
