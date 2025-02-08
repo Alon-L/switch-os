@@ -83,8 +83,8 @@ __attribute__((noreturn)) void core_main(void) {
   CHECK_RETHROW(does_disk_contain_dump(&virtio_blk_dev, &contains_dump));
 
   if (contains_dump) {
-    TRACE("Dump found on disk. Loading...\n");
-    CHECK_RETHROW(disk_load_dump(&virtio_blk_dev));
+    TRACE("Dump found on disk. Switching...\n");
+    CHECK_RETHROW(disk_switch_dump(&virtio_blk_dev));
   } else {
     TRACE("Dump not found on disk. Storing...\n");
     CHECK_RETHROW(disk_store_dump(&virtio_blk_dev));
