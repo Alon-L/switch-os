@@ -138,18 +138,18 @@ void free_queue_desc(struct virtio_queue* queue, uint16_t desc) {
   queue->free_head = desc;
 }
 
-bool is_new_used_virtio_blk(struct virtio_queue* queue) {
+bool is_unseen_used_virtio_blk(struct virtio_queue* queue) {
   return queue->seen_used != read16(&queue->used->idx);
 }
 
-err_t pop_used_virtio_blk(struct virtio_queue* queue, uint16_t* desc_out,
-                          uint32_t* len_out) {
+err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out,
+                      uint32_t* len_out) {
   err_t err = SUCCESS;
 
-  CHECK(is_new_used_virtio_blk(queue));
+  CHECK(is_unseen_used_virtio_blk(queue));
 
-  *desc_out = read16(&queue->used->ring[queue->seen_used].id);
-  *len_out = read16(&queue->used->ring[queue->seen_used].len);
+  *desc_out = (uint16_t)read32(&queue->used->ring[queue->seen_used].id);
+  *len_out = read32(&queue->used->ring[queue->seen_used].len);
 
   // Increment seen used.
   queue->seen_used = (queue->seen_used + 1) % queue->size;
@@ -158,8 +158,8 @@ cleanup:
   return err;
 }
 
-err_t validate_response_virtio_blk(struct virtio_queue* queue, uint16_t desc,
-                                   uint32_t len) {
+err_t validate_used_virtio(struct virtio_queue* queue, uint16_t desc,
+                           uint32_t len) {
   err_t err = SUCCESS;
   uint16_t desc1 = VIRTIO_INVALID_DESC;
   uint16_t desc2 = VIRTIO_INVALID_DESC;
@@ -173,6 +173,9 @@ err_t validate_response_virtio_blk(struct virtio_queue* queue, uint16_t desc,
   desc3 = queue->desc[desc2].next;
   CHECK(queue->desc[desc3].flags & VIRTQ_DESC_F_WRITE);
 
+  // Validate the response status.
+  CHECK(*(uint8_t*)queue->desc[desc3].addr == VIRTIO_BLK_S_OK);
+
   // The given length equals the amount of data the device has written. We
   // expect every write-only descriptor to be fully written to.
   len -= queue->desc[desc3].len;
@@ -181,9 +184,6 @@ err_t validate_response_virtio_blk(struct virtio_queue* queue, uint16_t desc,
   }
   CHECK(len == 0);
 
-  // Validate the response status.
-  CHECK(*(uint8_t*)queue->desc[desc3].addr == VIRTIO_BLK_S_OK);
-
 cleanup:
   free_queue_desc(queue, desc1);
   free_queue_desc(queue, desc2);
@@ -191,13 +191,18 @@ cleanup:
   return err;
 }
 
-err_t pop_and_validate_virtio_blk(struct virtio_queue* queue) {
+err_t consume_response_virtio(struct virtio_queue* queue) {
   err_t err = SUCCESS;
 
+  // Wait for a response.
+  while (!is_unseen_used_virtio_blk(queue)) {
+  }
+
+  // Pop and validate the response.
   uint16_t desc;
   uint32_t len;
-  CHECK_RETHROW(pop_used_virtio_blk(queue, &desc, &len));
-  CHECK_RETHROW(validate_response_virtio_blk(queue, desc, len));
+  CHECK_RETHROW(pop_used_virtio(queue, &desc, &len));
+  CHECK_RETHROW(validate_used_virtio(queue, desc, len));
 
 cleanup:
   return err;

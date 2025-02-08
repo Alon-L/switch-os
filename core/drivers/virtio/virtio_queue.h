@@ -35,7 +35,7 @@ void free_queue_desc(struct virtio_queue* queue, uint16_t desc);
  * Returns whether the device has filled a new descriptor in the used ring that
  * we haven't looked at yet.
  */
-bool is_new_used_virtio_blk(struct virtio_queue* queue);
+bool is_unseen_used_virtio_blk(struct virtio_queue* queue);
 
 /**
  * Pop a single used descriptor recently filled by the device.
@@ -46,11 +46,11 @@ bool is_new_used_virtio_blk(struct virtio_queue* queue);
  * @param len_out   - The length of data the device has written to the
  * descriptor.
  */
-err_t pop_used_virtio_blk(struct virtio_queue* queue, uint16_t* desc_out,
-                          uint32_t* len_out);
+err_t pop_used_virtio(struct virtio_queue* queue, uint16_t* desc_out,
+                      uint32_t* len_out);
 
 /**
- * Validate a response to a read/write request.
+ * Validate a used descriptor chain response to a read/write request.
  *
  * The response includes 3 descriptors chained together.
  * The given length must equal the size of the write-only descriptors.
@@ -59,14 +59,15 @@ err_t pop_used_virtio_blk(struct virtio_queue* queue, uint16_t* desc_out,
  * @param len   - The length of data the device has written to the descriptors.
  * This is obtained from `pop_used_virtio_blk`.
  */
-err_t validate_response_virtio_blk(struct virtio_queue* queue, uint16_t desc,
-                                   uint32_t len);
+err_t validate_used_virtio(struct virtio_queue* queue, uint16_t desc,
+                           uint32_t len);
 
 /**
- * Combines `pop_used_virtio_blk` and `validate_chain_virtio_blk` to pop and
- * validate a descriptor chain request.
- * This does not return the descriptors.
+ * Waits for a response, then pops and validates it.
+ * The response is discarded.
+ * This is used to receive an acknowledgment that a
+ * request has completed successfully.
  */
-err_t pop_and_validate_virtio_blk(struct virtio_queue* queue);
+err_t consume_response_virtio(struct virtio_queue* queue);
 
 #endif
