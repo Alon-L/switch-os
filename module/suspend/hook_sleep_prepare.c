@@ -24,20 +24,16 @@ static int my_acpi_sleep_prepare(struct kretprobe_instance* ri, struct pt_regs* 
   return 0;
 }
 
-static struct kretprobe g_kretprobe = {
-  .kp =
-    {
-      .symbol_name = "acpi_sleep_prepare",
-    },
-  .handler = my_acpi_sleep_prepare,
-};
+static struct kretprobe g_kretprobe;
 
 static atomic_t g_is_hooked = ATOMIC_INIT(false);
 
 err_t hook_sleep_prepare(void) {
   err_t err = SUCCESS;
 
-  CHECK(register_kretprobe(&g_kretprobe) == 0);
+  memset(&g_kretprobe, 0, sizeof(g_kretprobe));
+  g_kretprobe.kp.symbol_name = "acpi_sleep_prepare";
+  g_kretprobe.handler = my_acpi_sleep_prepare;
 
   if (atomic_xchg(&g_is_hooked, true) == false) {
     CHECK(register_kretprobe(&g_kretprobe) == 0);
