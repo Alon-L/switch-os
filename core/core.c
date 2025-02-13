@@ -11,6 +11,7 @@
 
 __attribute__((section(".core_header"))) struct core_header g_core_header = {
   .magic = CORE_HEADER_MAGIC,
+  .action = CORE_ACTION_INVALID,
 };
 
 int setup_acpi(void) {
@@ -79,15 +80,23 @@ __attribute__((noreturn)) void core_main(void) {
   struct virtio_blk_dev virtio_blk_dev;
   CHECK_RETHROW(init_virtio_blk_dev(&virtio_blk_dev));
 
-  bool contains_dump = false;
-  CHECK_RETHROW(does_disk_contain_dump(&virtio_blk_dev, &contains_dump));
-
-  if (contains_dump) {
-    TRACE("Dump found on disk. Switching...\n");
-    CHECK_RETHROW(disk_switch_dump(&virtio_blk_dev));
-  } else {
-    TRACE("Dump not found on disk. Storing...\n");
-    CHECK_RETHROW(disk_store_dump(&virtio_blk_dev));
+  switch (g_core_header.action) {
+    case CORE_ACTION_STORE: {
+      TRACE("Storing dump...\n");
+      CHECK_RETHROW(disk_store_dump(&virtio_blk_dev));
+      break;
+    }
+    case CORE_ACTION_SWITCH: {
+      TRACE("Switching dump...\n");
+      bool contains_dump = false;
+      CHECK_RETHROW(does_disk_contain_dump(&virtio_blk_dev, &contains_dump));
+      CHECK_TRACE(contains_dump, "Dump not found on disk. Aborting switch.\n");
+      CHECK_RETHROW(disk_switch_dump(&virtio_blk_dev));
+      break;
+    }
+    default: {
+      CHECK_FAIL_TRACE("Invalid core action!\n");
+    }
   }
 
 cleanup:
