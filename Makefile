@@ -58,7 +58,7 @@ qemu: build
 		-initrd $(LINUX_INITRD) \
 		-append '$(QEMU_APPEND_FLAGS)' \
 		-virtfs local,path=$(VM_MOUNT_DIR),mount_tag=qemu_root,security_model=passthrough,id=qemu_root,readonly=on \
-		-drive id=buffer_drive,file=$(BUFFER_DRIVE_IMG),if=none -device virtio-blk-pci,drive=buffer_drive \
+		-drive id=buffer_drive,file=$(BUFFER_DRIVE_IMG),if=none,format=raw -device virtio-blk-pci,drive=buffer_drive \
 		-enable-kvm \
 		-vga virtio \
 		$(QEMU_ADDITIONAL_FLAGS)
