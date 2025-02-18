@@ -17,10 +17,20 @@ struct mem_area {
 
 typedef int (*core_start_t)(void);
 
+enum core_action {
+  CORE_ACTION_INVALID,
+  CORE_ACTION_STORE,
+  CORE_ACTION_SWITCH,
+};
+
 struct core_header {
   // [READ]   A magic to validate the beginning of the core header. Must be
   //          `CORE_HEADER_MAGIC`.
   const uint32_t magic;
+
+  // [WRITE]  The action for core to execute. The module must fill this to a
+  //          value other than `CORE_ACTION_INVALID`.
+  enum core_action action;
 
   // [WRITE]  The original waking vector of the kernel that entered core. The
   //          module must fill this.

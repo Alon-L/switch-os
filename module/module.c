@@ -5,6 +5,7 @@
 
 #include "core/header.h"
 #include "core_loader.h"
+#include "devices.h"
 #include "error.h"
 #include "suspend/hook_sleep_prepare.h"
 #include "trace.h"
@@ -23,11 +24,7 @@ int init_module(void) {
 
   TRACE("Init switch_os kernel module\n");
 
-  CHECK_RETHROW(load_core(&g_core_header));
-
-  CHECK_RETHROW(hook_sleep_prepare());
-
-  TRACE("Hooked acpi_sleep_prepare\n");
+  CHECK_RETHROW(register_devices());
 
 cleanup:
   return IS_SUCCESS(err) ? 0 : -1;

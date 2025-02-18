@@ -1,6 +1,7 @@
 obj-m += switch_os.o
 
 switch_os-y += module.o
+switch_os-y += devices.o
 switch_os-y += core_loader.o
 switch_os-y += acpi.o
 switch_os-y += configure_core_header.o

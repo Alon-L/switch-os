@@ -1,6 +1,7 @@
 #include "hook_sleep_prepare.h"
 
 #include <linux/acpi.h>
+#include <linux/atomic.h>
 #include <linux/kprobes.h>
 
 #include "../configure_core_header.h"
@@ -23,30 +24,27 @@ static int my_acpi_sleep_prepare(struct kretprobe_instance* ri, struct pt_regs* 
   return 0;
 }
 
-static struct kretprobe g_kretprobe = {
-  .kp =
-    {
-      .symbol_name = "acpi_sleep_prepare",
-    },
-  .handler = my_acpi_sleep_prepare,
-};
+static struct kretprobe g_kretprobe;
 
-static bool g_is_hooked = false;
+static atomic_t g_is_hooked = ATOMIC_INIT(false);
 
 err_t hook_sleep_prepare(void) {
   err_t err = SUCCESS;
 
-  CHECK(register_kretprobe(&g_kretprobe) == 0);
+  memset(&g_kretprobe, 0, sizeof(g_kretprobe));
+  g_kretprobe.kp.symbol_name = "acpi_sleep_prepare";
+  g_kretprobe.handler = my_acpi_sleep_prepare;
 
-  g_is_hooked = true;
+  if (atomic_xchg(&g_is_hooked, true) == false) {
+    CHECK(register_kretprobe(&g_kretprobe) == 0);
+  }
 
 cleanup:
   return err;
 }
 
 void unhook_sleep_prepare(void) {
-  if (g_is_hooked) {
+  if (atomic_xchg(&g_is_hooked, false) == true) {
     unregister_kretprobe(&g_kretprobe);
-    g_is_hooked = false;
   }
 }

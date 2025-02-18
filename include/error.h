@@ -35,4 +35,6 @@ typedef enum {
 
 #define CHECK_FAIL() CHECK(0)
 
+#define CHECK_FAIL_TRACE(fmt, ...) CHECK_TRACE(0, fmt, ##__VA_ARGS__)
+
 #endif
