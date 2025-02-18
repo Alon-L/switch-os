@@ -1,7 +1,15 @@
 #ifndef _ACPI_H
 #define _ACPI_H
 
+#include <stdint.h>
+
 #include "error.h"
+
+/**
+ * The waking vector set in `acpi_return_kernel`.
+ * This must be set prior to calling `acpi_return_kernel`.
+ */
+extern uint32_t g_kernel_waking_vector;
 
 /**
  * Initializes uACPI and enters ACPI mode.

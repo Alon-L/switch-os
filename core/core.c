@@ -20,6 +20,8 @@ __attribute__((noreturn)) void core_main(void) {
 
   core_init_allocators();
 
+  g_kernel_waking_vector = g_core_header.original_waking_vector;
+
   // TODO: Validate g_core_header.
 
   struct virtio_blk_dev virtio_blk_dev;

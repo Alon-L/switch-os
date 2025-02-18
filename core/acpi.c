@@ -7,6 +7,8 @@
 
 extern struct core_header g_core_header;
 
+uint32_t g_kernel_waking_vector = 0;
+
 err_t acpi_setup(void) {
   err_t err = SUCCESS;
 
@@ -34,7 +36,11 @@ cleanup:
 }
 
 void acpi_return_kernel(void) {
-  uacpi_set_waking_vector(g_core_header.original_waking_vector, 0);
+  if (g_kernel_waking_vector != 0) {
+    uacpi_set_waking_vector(g_kernel_waking_vector, 0);
+  } else {
+    TRACE("Kernel waking vector not set!\n");
+  }
 
   uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S3);
   uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S3);

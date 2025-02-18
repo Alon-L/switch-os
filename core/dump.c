@@ -1,5 +1,6 @@
 #include "dump.h"
 
+#include "acpi.h"
 #include "core/consts.h"
 #include "core/header.h"
 #include "drivers/virtio/virtio_blk.h"
@@ -204,10 +205,7 @@ err_t disk_load_dump(struct virtio_blk_dev* virtio_blk_dev) {
     CHECK_RETHROW(consume_response_virtio_blk(virtio_blk_dev));
   }
 
-  // TODO: Hold a different variable for the waking vector to return to, other
-  // than using the header. So create a variable called `kernel_waking_vector`
-  // and then set it to header.waking_vector and wakeup using it.
-  g_core_header.original_waking_vector = header.waking_vector;
+  g_kernel_waking_vector = header.waking_vector;
 
 cleanup:
   return err;
@@ -264,9 +262,8 @@ err_t disk_switch_dump(struct virtio_blk_dev* virtio_blk_dev) {
   }
 
   // Switch the waking vector.
-  uint32_t original_waking_vector = g_core_header.original_waking_vector;
-  g_core_header.original_waking_vector = header.waking_vector;
-  header.waking_vector = original_waking_vector;
+  g_kernel_waking_vector = header.waking_vector;
+  header.waking_vector = g_core_header.original_waking_vector;
 
   // Write the updated header (this is only required for the waking vector change).
   CHECK_RETHROW(write_dump_header(virtio_blk_dev, &header));
