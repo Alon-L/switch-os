@@ -1,4 +1,5 @@
 #include <uacpi/kernel_api.h>
+#include <uacpi/status.h>
 
 #include "alloc.h"
 #include "core/header.h"
@@ -6,8 +7,9 @@
 #include "mem.h"
 #include "pci.h"
 #include "trace.h"
-#include "uacpi/status.h"
+#include "uacpi/types.h"
 
+// Some functions in this file have a dummy implementation that does not use all their parameters.
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 extern struct core_header g_core_header;
@@ -143,6 +145,7 @@ void uacpi_kernel_io_unmap(uacpi_handle handle) {
 }
 
 uacpi_status uacpi_kernel_io_read(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64* value) {
+  // `handle` is io base.
   uint16_t p = (uacpi_io_addr)handle + offset;
 
   switch (byte_width) {
@@ -166,6 +169,7 @@ uacpi_status uacpi_kernel_io_read(uacpi_handle handle, uacpi_size offset, uacpi_
 }
 
 uacpi_status uacpi_kernel_io_write(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 value) {
+  // `handle` is io base.
   uint16_t p = (uacpi_io_addr)handle + offset;
 
   switch (byte_width) {
@@ -209,99 +213,112 @@ void uacpi_kernel_free(void* mem) {
 }
 
 void uacpi_kernel_log(uacpi_log_level level, const uacpi_char* log) {
-  TRACE("%s", log);
+  if (level <= UACPI_LOG_WARN) {
+    TRACE("%s", log);
+  }
   return;
 }
 
 uacpi_u64 uacpi_kernel_get_nanoseconds_since_boot(void) {
+  // Unimplemented.
   return 0;
 }
 
 void uacpi_kernel_stall(uacpi_u8 usec) {
+  // Unimplemented.
   return;
 }
 
 void uacpi_kernel_sleep(uacpi_u64 msec) {
+  // Unimplemented.
   return;
 }
 
-static char mutex;
-static char event;
-static char spinlock;
-
 uacpi_handle uacpi_kernel_create_mutex(void) {
-  return &mutex;
+  return core_malloc(1);
 }
 
 void uacpi_kernel_free_mutex(uacpi_handle handle) {
-  return;
+  core_free((void*)handle);
 }
 
 uacpi_handle uacpi_kernel_create_event(void) {
-  return &event;
+  return core_malloc(1);
 }
 
 void uacpi_kernel_free_event(uacpi_handle handle) {
-  return;
+  core_free((void*)handle);
 }
 
 uacpi_thread_id uacpi_kernel_get_thread_id(void) {
+  // We run single threaded.
   return 0;
 }
 
 uacpi_status uacpi_kernel_acquire_mutex(uacpi_handle handle, uacpi_u16 val) {
+  // Unimplemented.
   return UACPI_STATUS_OK;
 }
-
 void uacpi_kernel_release_mutex(uacpi_handle handle) {
+  // Unimplemented.
   return;
 }
 
 uacpi_bool uacpi_kernel_wait_for_event(uacpi_handle handle, uacpi_u16 event) {
+  // Unimplemented.
   return false;
 }
 
 void uacpi_kernel_signal_event(uacpi_handle handle) {
+  // Unimplemented.
   return;
 }
 
 void uacpi_kernel_reset_event(uacpi_handle handle) {
+  // Unimplemented.
   return;
 }
 
 uacpi_status uacpi_kernel_handle_firmware_request(uacpi_firmware_request* request) {
+  // Unimplemented.
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
 uacpi_status uacpi_kernel_install_interrupt_handler(uacpi_u32 irq, uacpi_interrupt_handler handle, uacpi_handle ctx,
                                                     uacpi_handle* out_irq_handle) {
+  // Technically unimplemented, but we need to return UACPI_STATUS_OK for uACPI initialization to succeed.
   return UACPI_STATUS_OK;
 }
 
 uacpi_status uacpi_kernel_uninstall_interrupt_handler(uacpi_interrupt_handler handle, uacpi_handle irq_handle) {
+  // Unimplemented.
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
 uacpi_handle uacpi_kernel_create_spinlock(void) {
-  return &spinlock;
+  return core_malloc(1);
 }
 
 void uacpi_kernel_free_spinlock(uacpi_handle handle) {
-  return;
+  core_free((void*)handle);
 }
 
 uacpi_cpu_flags uacpi_kernel_lock_spinlock(uacpi_handle handle) {
+  // Unimplemented.
   return 0;
 }
 
 void uacpi_kernel_unlock_spinlock(uacpi_handle handle, uacpi_cpu_flags flags) {
+  // Unimplemented.
   return;
 }
 
 uacpi_status uacpi_kernel_schedule_work(uacpi_work_type type, uacpi_work_handler handler, uacpi_handle ctx) {
+  // Unimplemented.
   return UACPI_STATUS_UNIMPLEMENTED;
 }
 
 uacpi_status uacpi_kernel_wait_for_work_completion(void) {
+  // Unimplemented.
   return UACPI_STATUS_UNIMPLEMENTED;
 }
