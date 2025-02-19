@@ -19,10 +19,9 @@ __attribute__((noreturn)) void core_main(void) {
   TRACE("Running switch os core...\n");
 
   core_init_allocators();
-
   g_kernel_waking_vector = g_core_header.original_waking_vector;
 
-  // TODO: Validate g_core_header.
+  CHECK(is_core_header_valid(&g_core_header));
 
   struct virtio_blk_dev virtio_blk_dev;
   CHECK_RETHROW(init_virtio_blk_dev(&virtio_blk_dev));
@@ -48,6 +47,8 @@ __attribute__((noreturn)) void core_main(void) {
 
 cleanup:
   acpi_setup();
+
+  TRACE("Waking up kernel...\n");
   acpi_return_kernel();
 
   // We should be in suspend by this point.

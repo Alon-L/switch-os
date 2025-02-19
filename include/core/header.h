@@ -10,17 +10,17 @@
 #include <linux/kernel.h>
 #endif
 
+#include "utils.h"
+
 struct mem_area {
   uint64_t start;
   uint64_t size;
 };
 
-typedef int (*core_start_t)(void);
-
 enum core_action {
-  CORE_ACTION_INVALID,
   CORE_ACTION_STORE,
   CORE_ACTION_SWITCH,
+  CORE_ACTION_INVALID,
 };
 
 struct core_header {
@@ -63,8 +63,40 @@ struct core_header {
   struct mem_area ram_areas[32];
 };
 
-static inline bool is_core_header_magic_valid(struct core_header* core_header) {
+static inline bool is_core_header_magic_valid(const struct core_header* core_header) {
   return core_header->magic == CORE_HEADER_MAGIC;
+}
+
+static inline bool is_core_header_action_valid(const struct core_header* core_header) {
+  return core_header->action < CORE_ACTION_INVALID;
+}
+
+static inline bool is_core_header_original_waking_vector_valid(const struct core_header* core_header) {
+  return core_header->original_waking_vector != 0;
+}
+
+static inline bool is_core_header_rsdp_valid(const struct core_header* core_header) {
+  return core_header->rsdp != 0;
+}
+
+static inline bool is_core_header_ram_areas_valid(const struct core_header* core_header) {
+  if (core_header->ram_areas_size > ARRAY_SIZE(core_header->ram_areas)) {
+    return false;
+  }
+
+  for (uint32_t i = 0; i < core_header->ram_areas_size; i++) {
+    if (core_header->ram_areas[i].size == 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static inline bool is_core_header_valid(const struct core_header* core_header) {
+  return is_core_header_magic_valid(core_header) && is_core_header_action_valid(core_header) &&
+         is_core_header_original_waking_vector_valid(core_header) && is_core_header_rsdp_valid(core_header) &&
+         is_core_header_ram_areas_valid(core_header);
 }
 
 #endif
