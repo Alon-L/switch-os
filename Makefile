@@ -35,6 +35,7 @@ clean:
 .PHONY: clean
 
 module/%.o_shipped: core/build/%.o
+	touch module/.$*.o.cmd
 	cp $^ $@
 
 core/build/core.o:

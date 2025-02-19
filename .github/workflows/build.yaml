@@ -1,0 +1,36 @@
+name: Build CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-linux:
+    strategy:
+      matrix:
+        linux-version:
+        - version: 6.6.0-13-generic
+          deb:
+            all: http://launchpadlibrarian.net/698860017/linux-headers-6.6.0-13_6.6.0-13.13_all.deb
+            generic: http://launchpadlibrarian.net/698860014/linux-headers-6.6.0-13-generic_6.6.0-13.13_amd64.deb
+        - version: 6.11.0-9-generic
+          deb:
+            all: http://launchpadlibrarian.net/754119749/linux-headers-6.11.0-9_6.11.0-9.9_all.deb
+            generic: http://launchpadlibrarian.net/754119748/linux-headers-6.11.0-9-generic_6.11.0-9.9_amd64.deb
+    runs-on: ubuntu-latest
+    env:
+      LINUX_HEADERS: /lib/modules/${{ matrix.linux-version.version }}/build
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+    - name: Install kernel headers
+      run: |
+        wget ${{ matrix.linux-version.deb.all }}
+        wget ${{ matrix.linux-version.deb.generic }}
+        sudo apt install -y ./*.deb
+    - name: Build
+      run: make build
