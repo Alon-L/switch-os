@@ -1,4 +1,3 @@
-# TODO: depend on the C files
 all: 
 	make -C $(LINUX_SOURCE) M=$(CURDIR) modules
 
