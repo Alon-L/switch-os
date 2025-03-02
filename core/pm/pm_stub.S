@@ -4,10 +4,10 @@
   .globl pm_stub
 pm_stub:
   // The first PM code that runs after wakeup.
-  // The short RM assembly already prepares the GDT and loaded the segments.
+  // The short RM assembly already prepared the GDT and loaded the segments.
 
-  // Setup the stack and jump to the C code
+  // Setup the stack and jump to the C code.
   lea ebp, __pm_stack_end
-  mov	esp, ebp
+  mov esp, ebp
 
   jmp main_pm
