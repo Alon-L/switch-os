@@ -19,7 +19,7 @@ void trace(const char* fmt, ...) {
   va_end(args);
 }
 
-int init_module(void) {
+static int __init switchos_init(void) {
   err_t err = SUCCESS;
 
   TRACE("Init switch_os kernel module\n");
@@ -30,7 +30,7 @@ cleanup:
   return IS_SUCCESS(err) ? 0 : -1;
 }
 
-void cleanup_module(void) {
+static void __exit switchos_exit(void) {
   TRACE("Unloading switch_os kernel module\n");
 
   if (g_core_header != NULL) {
@@ -40,3 +40,6 @@ void cleanup_module(void) {
 }
 
 MODULE_LICENSE("GPL");
+
+module_init(switchos_init);
+module_exit(switchos_exit);
