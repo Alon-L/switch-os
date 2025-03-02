@@ -1,4 +1,7 @@
-PM_OBJS := pm_stub.o paging.o
+PM_OBJS += pm_stub.o
+PM_OBJS += pm.o
+PM_OBJS += gdt.o
+PM_OBJS += paging.o
 
 PM_CFLAGS = $(CFLAGS) -m32 -march=i386 -fno-stack-protector
 PM_LDFLAGS := $(LDFLAGS)
