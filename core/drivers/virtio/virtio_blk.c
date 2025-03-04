@@ -123,14 +123,14 @@ static err_t negotiate_virtio_features(struct virtio_blk_dev* virtio_blk_dev) {
   uint64_t available_features = read_mb32(&virtio_blk_dev->common_cfg->device_feature);
 
   write_mb32(&virtio_blk_dev->common_cfg->device_feature_select, 1);
-  available_features |= (uint64_t)read_mb32(&virtio_blk_dev->common_cfg->device_feature) >> 32;
+  available_features |= (uint64_t)read_mb32(&virtio_blk_dev->common_cfg->device_feature) << 32;
 
   // Make sure the device offers all of our requested features.
   CHECK((requested_features & available_features) == requested_features);
 
   // Set the requested features.
   write_mb32(&virtio_blk_dev->common_cfg->driver_feature_select, 0);
-  write_mb32(&virtio_blk_dev->common_cfg->driver_feature, (uint32_t)requested_features);
+  write_mb32(&virtio_blk_dev->common_cfg->driver_feature, (uint32_t)(requested_features & 0xffffffff));
   write_mb32(&virtio_blk_dev->common_cfg->driver_feature_select, 1);
   write_mb32(&virtio_blk_dev->common_cfg->driver_feature, (uint32_t)(requested_features >> 32));
 
