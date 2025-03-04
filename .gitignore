@@ -8,10 +8,10 @@
 *.order
 *.d
 *.ko
-*.mod
-*.mod.c
 *.bin
 *.ld.gen
+module/*.mod
+module/*.mod.c
 
 *~
 .*~

@@ -1,0 +1,51 @@
+name: Test CI
+
+on:
+  push:
+    branches: [ "main", "feature/tests" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install apt packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libvirt-clients \
+          libvirt-daemon-system \
+          libvirt-dev \
+          ovmf \
+          qemu-kvm \
+          passt \
+          golang
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.x'
+    - name: Install go dependencies
+      working-directory: ./tests
+      run: |
+        go get .
+        go install github.com/onsi/ginkgo/v2/ginkgo
+    - name: Configure libvirt
+      run: |
+        printf 'user = "runner"\ngroup = "kvm"\nsecurity_driver = "none"\n' | sudo tee -a /etc/libvirt/qemu.conf
+        sudo usermod -a -G libvirt runner
+        sudo usermod -a -G kvm runner
+        sudo systemctl restart libvirtd
+        sudo setfacl -m user:$USER:rw /var/run/libvirt/libvirt-sock
+    - name: Create dump image
+      run: |
+        dd if=/dev/zero of=dump.img bs=1024 count=2097152
+    - name: Build
+      run: |
+        mkdir -p build # TODO: Actually build
+    - name: Test
+      working-directory: ./tests
+      run: ginkgo
