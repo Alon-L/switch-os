@@ -60,7 +60,8 @@ qemu: build
 	$(QEMU) \
 		-m 2G \
 		-serial mon:stdio \
-		-drive if=pflash,format=raw,file=$(OVMF) \
+		-drive if=pflash,format=raw,readonly=on,file=$(OVMF_CODE) \
+		-drive if=pflash,format=raw,file=$(OVMF_VARS) \
 		-hda fat:rw:build/efi \
 		-hdb fat:rw:$(LINUX_DISK_PATH) \
 		-virtfs local,path=build/vm_mount,mount_tag=qemu_root,security_model=passthrough,id=qemu_root,readonly=on \
