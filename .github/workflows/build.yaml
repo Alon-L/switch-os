@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LINUX_HEADERS: /lib/modules/${{ matrix.linux-version.version }}/build
+      GNU_EFI: ${{ GITHUB_WORKSPACE }}/gnu-efi
 
     steps:
     - uses: actions/checkout@v4
@@ -32,5 +33,10 @@ jobs:
         wget ${{ matrix.linux-version.deb.all }}
         wget ${{ matrix.linux-version.deb.generic }}
         sudo apt install -y ./*.deb
+    - name: Install GNU-EFI
+      run: |
+        git clone https://git.code.sf.net/p/gnu-efi/code ${{ GITHUB_WORKSPACE }}/gnu-efi
+        cd ${{ GITHUB_WORKSPACE }}/gnu-efi
+        make -j $(nproc)
     - name: Build
       run: make build
