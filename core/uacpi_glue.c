@@ -89,49 +89,39 @@ void uacpi_kernel_pci_device_close(uacpi_handle handle) {
   return;
 }
 
-uacpi_status uacpi_kernel_pci_read(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64* value) {
-  struct pci_dev_addr* pci_dev_addr = handle;
-
-  switch (byte_width) {
-    case 1: {
-      *value = pci_read_8(pci_dev_addr, offset);
-      break;
-    }
-    case 2: {
-      *value = pci_read_16(pci_dev_addr, offset);
-      break;
-    }
-    case 4: {
-      *value = pci_read_32(pci_dev_addr, offset);
-      break;
-    }
-    default:
-      return UACPI_STATUS_INVALID_ARGUMENT;
-  }
-
+uacpi_status uacpi_kernel_pci_read8(uacpi_handle device, uacpi_size offset, uacpi_u8* value) {
+  struct pci_dev_addr* pci_dev_addr = device;
+  *value = pci_read_8(pci_dev_addr, offset);
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_pci_write(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 value) {
-  struct pci_dev_addr* pci_dev_addr = handle;
+uacpi_status uacpi_kernel_pci_read16(uacpi_handle device, uacpi_size offset, uacpi_u16* value) {
+  struct pci_dev_addr* pci_dev_addr = device;
+  *value = pci_read_16(pci_dev_addr, offset);
+  return UACPI_STATUS_OK;
+}
 
-  switch (byte_width) {
-    case 1: {
-      pci_write_8(pci_dev_addr, offset, (uint8_t)value);
-      break;
-    }
-    case 2: {
-      pci_write_16(pci_dev_addr, offset, (uint8_t)value);
-      break;
-    }
-    case 4: {
-      pci_write_32(pci_dev_addr, offset, (uint8_t)value);
-      break;
-    }
-    default:
-      return UACPI_STATUS_INVALID_ARGUMENT;
-  }
+uacpi_status uacpi_kernel_pci_read32(uacpi_handle device, uacpi_size offset, uacpi_u32* value) {
+  struct pci_dev_addr* pci_dev_addr = device;
+  *value = pci_read_32(pci_dev_addr, offset);
+  return UACPI_STATUS_OK;
+}
 
+uacpi_status uacpi_kernel_pci_write8(uacpi_handle device, uacpi_size offset, uacpi_u8 value) {
+  struct pci_dev_addr* pci_dev_addr = device;
+  pci_write_8(pci_dev_addr, offset, value);
+  return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_pci_write16(uacpi_handle device, uacpi_size offset, uacpi_u16 value) {
+  struct pci_dev_addr* pci_dev_addr = device;
+  pci_write_16(pci_dev_addr, offset, value);
+  return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_pci_write32(uacpi_handle device, uacpi_size offset, uacpi_u32 value) {
+  struct pci_dev_addr* pci_dev_addr = device;
+  pci_write_32(pci_dev_addr, offset, value);
   return UACPI_STATUS_OK;
 }
 
@@ -144,51 +134,39 @@ void uacpi_kernel_io_unmap(uacpi_handle handle) {
   return;
 }
 
-uacpi_status uacpi_kernel_io_read(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64* value) {
-  // `handle` is io base.
+uacpi_status uacpi_kernel_io_read8(uacpi_handle handle, uacpi_size offset, uacpi_u8* out_value) {
   uint16_t p = (uacpi_io_addr)handle + offset;
-
-  switch (byte_width) {
-    case 1: {
-      *value = in8(p);
-      break;
-    }
-    case 2: {
-      *value = in16(p);
-      break;
-    }
-    case 4: {
-      *value = in32(p);
-      break;
-    }
-    default:
-      return UACPI_STATUS_INVALID_ARGUMENT;
-  }
-
+  *out_value = in8(p);
   return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_io_write(uacpi_handle handle, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 value) {
-  // `handle` is io base.
+uacpi_status uacpi_kernel_io_read16(uacpi_handle handle, uacpi_size offset, uacpi_u16* out_value) {
   uint16_t p = (uacpi_io_addr)handle + offset;
+  *out_value = in16(p);
+  return UACPI_STATUS_OK;
+}
 
-  switch (byte_width) {
-    case 1: {
-      out8(p, (uint8_t)value);
-      break;
-    }
-    case 2: {
-      out16(p, (uint16_t)value);
-      break;
-    }
-    case 4: {
-      out32(p, (uint32_t)value);
-      break;
-    }
-    default:
-      return UACPI_STATUS_INVALID_ARGUMENT;
-  }
+uacpi_status uacpi_kernel_io_read32(uacpi_handle handle, uacpi_size offset, uacpi_u32* out_value) {
+  uint16_t p = (uacpi_io_addr)handle + offset;
+  *out_value = in32(p);
+  return UACPI_STATUS_OK;
+}
 
+uacpi_status uacpi_kernel_io_write8(uacpi_handle handle, uacpi_size offset, uacpi_u8 in_value) {
+  uint16_t p = (uacpi_io_addr)handle + offset;
+  out8(p, in_value);
+  return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_io_write16(uacpi_handle handle, uacpi_size offset, uacpi_u16 in_value) {
+  uint16_t p = (uacpi_io_addr)handle + offset;
+  out16(p, in_value);
+  return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_io_write32(uacpi_handle handle, uacpi_size offset, uacpi_u32 in_value) {
+  uint16_t p = (uacpi_io_addr)handle + offset;
+  out32(p, in_value);
   return UACPI_STATUS_OK;
 }
 
@@ -213,10 +191,9 @@ void uacpi_kernel_free(void* mem) {
 }
 
 void uacpi_kernel_log(uacpi_log_level level, const uacpi_char* log) {
-  if (level <= UACPI_LOG_WARN) {
+  if (level <= UACPI_LOG_ERROR) {
     TRACE("%s", log);
   }
-  return;
 }
 
 uacpi_u64 uacpi_kernel_get_nanoseconds_since_boot(void) {

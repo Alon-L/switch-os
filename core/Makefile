@@ -46,7 +46,7 @@ UACPI_SOURCES := $(wildcard $(UACPI_PATH)/source/*.c)
 OBJS += $(UACPI_SOURCES:.c=.o) uacpi_glue.o
 
 UACPI_HEADERS_DIR := $(UACPI_PATH)/include
-CFLAGS += -I$(UACPI_HEADERS_DIR)
+CFLAGS += -I$(UACPI_HEADERS_DIR) -DUACPI_USE_BUILTIN_STRING
 LDFLAGS += -I$(UACPI_HEADERS_DIR)
 
 # ----------------
