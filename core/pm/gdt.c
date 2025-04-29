@@ -51,8 +51,8 @@ __attribute__((noreturn)) void load_lm_gdt() {
   g_lm_gdt_ptr.gdt = (uintptr_t)&g_lm_gdt;
 
   asm volatile(
-    "lgdt %0\n"
-    "jmp 8:%1\n" ::"m"(g_lm_gdt_ptr),
+    "lgdtl %0\n"
+    "ljmpl $8, %1\n" ::"m"(g_lm_gdt_ptr),
     "i"(CORE_MAIN_PHYS_ADDR));
 
   __builtin_unreachable();

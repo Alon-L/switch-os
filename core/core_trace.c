@@ -6,7 +6,7 @@
 
 static void print_char(char c) {
   // Use QEMU's debugcon device
-  asm volatile("out 0xe9, %0" ::"r"(c));
+  asm volatile("outb %0, $0xe9" ::"r"(c));
 }
 
 static void print_digits(const char* digits, size_t size) {
