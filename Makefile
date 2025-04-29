@@ -18,7 +18,7 @@ endif
 ifdef QEMU_DEBUG
 	QEMU_DEBUGCON_FILE_PATH ?= /var/log/switch-os.log
 	QEMU_ADDITIONAL_FLAGS += -debugcon file:$(QEMU_DEBUGCON_FILE_PATH)
-	DEBUG := 1
+	TRACE_DEBUG := 1
 endif
 
 clean:

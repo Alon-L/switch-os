@@ -32,10 +32,10 @@ ifdef CORE_GCC_DEBUG
 	CFLAGS += -gdwarf -g3
 endif
 
-# `DEBUG` allows `TRACE` to print to qemu's debugcon device.
-ifdef DEBUG
+# `TRACE_DEBUG` allows `TRACE` to print to qemu's debugcon device.
+ifdef TRACE_DEBUG
 	OBJS += core_trace.o
-	CFLAGS += -D DEBUG
+	CFLAGS += -D TRACE_DEBUG
 endif
 
 # -----------------

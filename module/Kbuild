@@ -12,6 +12,6 @@ switch_os-y += core.o
 
 ccflags-y := -I$(src)/../shared/include -DMODULE
 
-ifdef DEBUG
-	ccflags-y += -D DEBUG
+ifdef TRACE_DEBUG
+	ccflags-y += -D TRACE_DEBUG
 endif

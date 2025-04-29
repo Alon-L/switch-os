@@ -20,6 +20,10 @@ OBJCOPY_FLAGS := -j ".text" -j ".sdata" -j ".data" -j ".rodata" \
 	-j ".rel.*" -j ".rela.*" -j ".reloc" \
 	--target efi-app-x86_64 --subsystem=10
 
+ifdef TRACE_DEBUG
+	CFLAGS += -D TRACE_DEBUG
+endif
+
 OBJS += app.o
 OBJS += core_header_utils.o
 OBJS += core_loader.o
