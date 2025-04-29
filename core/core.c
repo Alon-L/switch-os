@@ -18,6 +18,8 @@ __attribute__((noreturn)) void core_main(void) {
 
   TRACE("Running switch os core...\n");
 
+  acpi_destroy();
+
   core_init_allocators();
   g_kernel_waking_vector = g_core_header.original_waking_vector;
 

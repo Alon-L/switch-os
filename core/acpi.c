@@ -2,6 +2,7 @@
 
 #include <uacpi/event.h>
 #include <uacpi/sleep.h>
+#include <uacpi/uacpi.h>
 
 #include "core/header.h"
 
@@ -33,6 +34,10 @@ err_t acpi_setup(void) {
 
 cleanup:
   return err;
+}
+
+void acpi_destroy(void) {
+  uacpi_state_reset();
 }
 
 void acpi_return_kernel(void) {
