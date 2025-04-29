@@ -52,13 +52,14 @@ LDFLAGS += -I$(UACPI_HEADERS_DIR)
 # ----------------
 # ----- CORE -----
 # ----------------
-OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
+OBJS_IN_OBJ_DIR := $(addprefix obj/,$(OBJS))
 
-$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
-	mkdir -p $(OBJ_DIR)/$(dir $^)
+obj/%.o: %.c
+	mkdir -p $(dir $@)
 	$(CC) -c $^ -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) script.ld.gen | $(BUILD_DIR)
+build/core.bin: $(OBJS_IN_OBJ_DIR) script.ld.gen
+	mkdir -p $(dir $@)
 	$(CC) $(OBJS_IN_OBJ_DIR) -T script.ld.gen -o $@ $(LDFLAGS)
 
 # ---------------------
@@ -67,37 +68,34 @@ $(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) script.ld.gen | $(BUILD_DIR)
 TRIM_COUNT := 4096
 
 # Trim the header of the ELF.
-$(BUILD_DIR)/%.bin.trimmed: $(BUILD_DIR)/%.bin | $(BUILD_DIR)
+build/%.bin.trimmed: build/%.bin
+	mkdir -p $(dir $@)
 	dd if=$^ of=$@ bs=$(TRIM_COUNT) skip=1
 
 # Create a dump for every part of core (core, pm, rm).
 # This extracts the text and data sections into a binary blob in an object file.
 # NOTE:The bss section is embedded into the data section.
-$(BUILD_DIR)/%.dump.o: $(BUILD_DIR)/%.bin.trimmed | $(BUILD_DIR)
+build/%.dump.o: build/%.bin.trimmed
+	mkdir -p $(dir $@)
 	$(OBJCOPY) -I binary --only-section=.text --only-section=.data -O elf64-x86-64 $^ $@
 
 # Build the final core binary combining every part of core.
-$(BUILD_DIR)/core.o: $(BUILD_DIR)/core.dump.o $(BUILD_DIR)/rm.dump.o $(BUILD_DIR)/pm.dump.o
+build/core.o: build/core.dump.o build/rm.dump.o build/pm.dump.o
+	mkdir -p $(dir $@)
 	$(LD) -r $^ -o $@ 
 
 # -----------------
 # ----- UTILS -----
 # -----------------
-$(BUILD_DIR):
-	mkdir -p $@
-
-$(OBJ_DIR):
-	mkdir -p $@
-
 %.ld.gen: %.ld
 	$(CC) $(LD_SCRIPT_FLAGS) -o $@ $^ 
 
-all: $(BUILD_DIR)/core.o
+all: build/core.o
 .DEFAULT_GOAL := all
 
 clean:
-	rm -rf $(OBJ_DIR)/*
-	rm -rf $(BUILD_DIR)/*
+	rm -rf obj/*
+	rm -rf build/*
 	rm -rf */*.ld.gen
 	rm -rf *.ld.gen
 
