@@ -18,7 +18,7 @@ endif
 ifdef QEMU_DEBUG
 	QEMU_DEBUGCON_FILE_PATH ?= /var/log/switch-os.log
 	QEMU_ADDITIONAL_FLAGS += -debugcon file:$(QEMU_DEBUGCON_FILE_PATH)
-	DEBUG := 1
+	TRACE_DEBUG := 1
 endif
 
 clean:
@@ -34,13 +34,17 @@ module/%.o_shipped: core/build/%.o
 	touch module/.$*.o.cmd
 	cp $^ $@
 
+uefi/obj/%.o: core/build/%.o
+	mkdir -p $(dir $@)
+	cp $^ $@
+
 core/build/core.o:
 	$(MAKE) -C core
 
 module/switch_os.ko: module/core.o_shipped
 	$(MAKE) -C module
 
-uefi/build/app.efi:
+uefi/build/app.efi: uefi/obj/core.o
 	$(MAKE) -C uefi
 
 .PHONY: core/build/core.o module/switch_os.ko uefi/build/app.efi

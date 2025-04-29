@@ -1,14 +1,21 @@
-#ifndef _PCI_H
-#define _PCI_H
+#pragma once
 
 #include <stdint.h>
 
 #include "error.h"
 #include "pci_utils.h"
 
+#ifndef PCI_MAX_BUS
 #define PCI_MAX_BUS (256)
+#endif
+
+#ifndef PCI_MAX_DEVICE
 #define PCI_MAX_DEVICE (32)
+#endif
+
+#ifndef PCI_MAX_FUNCTION
 #define PCI_MAX_FUNCTION (8)
+#endif
 
 enum pci_bar_type {
   PCI_BAR_IO,
@@ -84,5 +91,3 @@ void pci_cap_iter_next(struct pci_cap_iter* iter);
  */
 #define ITERATE_PCI_CAPABILITIES(pci_dev, iter_var) \
   for (pci_cap_iter_init(&(pci_dev), &(iter_var)); (iter_var).off != 0; pci_cap_iter_next(&(iter_var)))
-
-#endif

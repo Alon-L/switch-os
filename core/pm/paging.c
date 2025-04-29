@@ -25,29 +25,29 @@ static inline uint64_t pdpt_entry(uint64_t page_addr) {
 }
 
 static void load_cr3(void* pml4) {
-  asm volatile("mov cr3, %0" ::"r"(pml4));
+  asm volatile("movl %0, %%cr3" ::"r"(pml4));
 }
 
 static void enable_pae(void) {
   asm volatile(
-    "mov eax, cr4\n"
-    "or eax, 1 << 5\n"
-    "mov cr4, eax");
+    "movl %cr4, %eax\n"
+    "orl $(1 << 5), %eax\n"
+    "movl %eax, %cr4");
 }
 
 static void enable_lm(void) {
   asm volatile(
-    "mov ecx, 0xC0000080\n"
+    "movl $0xC0000080, %ecx\n"
     "rdmsr\n"
-    "or eax, 1 << 8\n"
+    "orl $(1 << 8), %eax\n"
     "wrmsr");
 }
 
 static void enable_paging(void) {
   asm volatile(
-    "mov eax, cr0\n"
-    "or eax, 1 << 31\n"
-    "mov cr0, eax");
+    "movl %cr0, %eax\n"
+    "orl $(1 << 31), %eax\n"
+    "movl %eax, %cr0");
 }
 
 // Fill a PDPT with identity mapping that consists of huge pages of size 1GB.

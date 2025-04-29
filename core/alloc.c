@@ -14,10 +14,10 @@ struct free_block {
 };
 
 struct allocator {
-  size_t block_size;
+  const size_t block_size;
 
-  uint8_t* buf;
-  size_t buf_size;
+  uint8_t* const buf;
+  const size_t buf_size;
 
   struct free_block* head;
 };
@@ -80,6 +80,7 @@ static struct allocator* find_allocator_for_size(size_t size) {
 void core_init_allocators(void) {
   for (size_t i = 0; i < ARRAY_SIZE(g_allocators); i++) {
     struct allocator* allocator = g_allocators[i];
+    allocator->head = NULL;
     // Iterate over all the blocks in the allocator's buffer, and chain them together into a linked list of free blocks.
     for (void* addr = allocator->buf; (uintptr_t)addr < (uintptr_t)allocator->buf + allocator->buf_size;
          addr += allocator->block_size) {
@@ -93,7 +94,7 @@ void core_init_allocators(void) {
 void* core_malloc(size_t size) {
   struct allocator* allocator = find_allocator_for_size(size);
   if (allocator == NULL || allocator->head == NULL) {
-    TRACE("No allocator head for allocator %lu\n", allocator->block_size);
+    TRACE("No allocator head for allocator\n");
     return NULL;
   }
 

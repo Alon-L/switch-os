@@ -1,17 +1,15 @@
 CC ?= gcc
 LD ?= ld
 OBJCOPY ?= objcopy
+VPATH := ../
 
 CFLAGS := -Wall -Wextra -Werror \
-					-I../include/ -I. -ffreestanding -static -O0 -fno-zero-initialized-in-bss \
+					-I../shared/include/ -I. -ffreestanding -static -O0 -fno-zero-initialized-in-bss \
 					-D CORE \
-					-fno-pic -masm=intel \
+					-fno-pic \
 					-ffunction-sections -fno-stack-protector -mno-sse -mno-red-zone -mgeneral-regs-only
 LDFLAGS := -ffreestanding -static -O0 -nostdlib
-LD_SCRIPT_FLAGS := -E -P -x c -I../include/ 
-
-OBJ_DIR := obj
-BUILD_DIR := build
+LD_SCRIPT_FLAGS := -E -P -x c -I../shared/include/ 
 
 include rm/Makefile
 include pm/Makefile
@@ -20,7 +18,6 @@ include pm/Makefile
 LDFLAGS += -lgcc
 
 OBJS += core.o
-OBJS += pci.o pci_utils.o
 OBJS += alloc.o
 OBJS += dump.o
 OBJS += acpi.o
@@ -28,14 +25,17 @@ OBJS += acpi.o
 include drivers/Makefile
 OBJS += $(addprefix drivers/,$(DRIVERS_OBJS))
 
+include ../shared/Makefile
+OBJS += $(addprefix shared/,$(SHARED_OBJS))
+
 ifdef CORE_GCC_DEBUG
 	CFLAGS += -gdwarf -g3
 endif
 
-# `DEBUG` allows `TRACE` to print to qemu's debugcon device.
-ifdef DEBUG
+# `TRACE_DEBUG` allows `TRACE` to print to qemu's debugcon device.
+ifdef TRACE_DEBUG
 	OBJS += core_trace.o
-	CFLAGS += -D DEBUG
+	CFLAGS += -D TRACE_DEBUG
 endif
 
 # -----------------
@@ -52,13 +52,14 @@ LDFLAGS += -I$(UACPI_HEADERS_DIR)
 # ----------------
 # ----- CORE -----
 # ----------------
-OBJS_IN_OBJ_DIR := $(addprefix $(OBJ_DIR)/,$(OBJS))
+OBJS_IN_OBJ_DIR := $(addprefix obj/,$(OBJS))
 
-$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
-	mkdir -p $(OBJ_DIR)/$(dir $^)
+obj/%.o: %.c
+	mkdir -p $(dir $@)
 	$(CC) -c $^ -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) script.ld.gen | $(BUILD_DIR)
+build/core.bin: $(OBJS_IN_OBJ_DIR) script.ld.gen
+	mkdir -p $(dir $@)
 	$(CC) $(OBJS_IN_OBJ_DIR) -T script.ld.gen -o $@ $(LDFLAGS)
 
 # ---------------------
@@ -67,37 +68,34 @@ $(BUILD_DIR)/core.bin: $(OBJS_IN_OBJ_DIR) script.ld.gen | $(BUILD_DIR)
 TRIM_COUNT := 4096
 
 # Trim the header of the ELF.
-$(BUILD_DIR)/%.bin.trimmed: $(BUILD_DIR)/%.bin | $(BUILD_DIR)
+build/%.bin.trimmed: build/%.bin
+	mkdir -p $(dir $@)
 	dd if=$^ of=$@ bs=$(TRIM_COUNT) skip=1
 
 # Create a dump for every part of core (core, pm, rm).
 # This extracts the text and data sections into a binary blob in an object file.
 # NOTE:The bss section is embedded into the data section.
-$(BUILD_DIR)/%.dump.o: $(BUILD_DIR)/%.bin.trimmed | $(BUILD_DIR)
+build/%.dump.o: build/%.bin.trimmed
+	mkdir -p $(dir $@)
 	$(OBJCOPY) -I binary --only-section=.text --only-section=.data -O elf64-x86-64 $^ $@
 
 # Build the final core binary combining every part of core.
-$(BUILD_DIR)/core.o: $(BUILD_DIR)/core.dump.o $(BUILD_DIR)/rm.dump.o $(BUILD_DIR)/pm.dump.o
+build/core.o: build/core.dump.o build/rm.dump.o build/pm.dump.o
+	mkdir -p $(dir $@)
 	$(LD) -r $^ -o $@ 
 
 # -----------------
 # ----- UTILS -----
 # -----------------
-$(BUILD_DIR):
-	mkdir -p $@
-
-$(OBJ_DIR):
-	mkdir -p $@
-
 %.ld.gen: %.ld
 	$(CC) $(LD_SCRIPT_FLAGS) -o $@ $^ 
 
-all: $(BUILD_DIR)/core.o
+all: build/core.o
 .DEFAULT_GOAL := all
 
 clean:
-	rm -rf $(OBJ_DIR)/*
-	rm -rf $(BUILD_DIR)/*
+	rm -rf obj/*
+	rm -rf build/*
 	rm -rf */*.ld.gen
 	rm -rf *.ld.gen
 
