@@ -34,13 +34,16 @@ module/%.o_shipped: core/build/%.o
 	touch module/.$*.o.cmd
 	cp $^ $@
 
+uefi/obj/%.o: core/build/%.o
+	cp $^ $@
+
 core/build/core.o:
 	$(MAKE) -C core
 
 module/switch_os.ko: module/core.o_shipped
 	$(MAKE) -C module
 
-uefi/build/app.efi:
+uefi/build/app.efi: uefi/obj/core.o
 	$(MAKE) -C uefi
 
 .PHONY: core/build/core.o module/switch_os.ko uefi/build/app.efi

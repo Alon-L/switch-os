@@ -3,7 +3,7 @@
 
 #include "core/consts.h"
 
-#if defined(CORE)
+#if defined(CORE) || defined(UEFI)
 #include <stdbool.h>
 #include <stdint.h>
 #elif defined(MODULE)
