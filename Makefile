@@ -35,6 +35,7 @@ module/%.o_shipped: core/build/%.o
 	cp $^ $@
 
 uefi/obj/%.o: core/build/%.o
+	mkdir -p $(dir $@)
 	cp $^ $@
 
 core/build/core.o:
