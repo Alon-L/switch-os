@@ -28,19 +28,19 @@ struct core_header {
   //          `CORE_HEADER_MAGIC`.
   const uint32_t magic;
 
-  // [WRITE]  The action for core to execute. The module must fill this to a
+  // [WRITE]  The action for core to execute. Must be filled to a
   //          value other than `CORE_ACTION_INVALID`.
   enum core_action action;
 
-  // [WRITE]  The original waking vector of the kernel that entered core. The
-  //          module must fill this.
+  // [WRITE]  The original waking vector of the kernel that entered core. Must be
+  //          filled.
   uint32_t original_waking_vector;
 
-  // [WRITE]  The rsdp table's physical address. The module must fill this.
+  // [WRITE]  The rsdp table's physical address. Must be filled.
   uint64_t rsdp;
 
   // [WRITE]  Values used to find and restore the disk used for dumping and
-  //          loading the memory. The module must fill this.
+  //          loading the memory. Must be filled.
   struct {
     // The disk's pci address.
     struct {
@@ -58,7 +58,7 @@ struct core_header {
   } disk_pci;
 
   // [WRITE]  All the memory areas listed as RAM. Core uses these areas to
-  //          create the memory dump. The module must fill this.
+  //          create the memory dump. Must be filled.
   uint8_t ram_areas_size;
   struct mem_area ram_areas[32];
 };
