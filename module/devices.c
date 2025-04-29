@@ -26,7 +26,6 @@ struct switch_os_device {
 static int switch_open(struct inode* inode, struct file* file) {
   err_t err = SUCCESS;
 
-  CHECK_RETHROW(load_core(&g_core_header));
   g_core_header->action = CORE_ACTION_SWITCH;
 
   CHECK_RETHROW(hook_sleep_prepare());
@@ -46,7 +45,6 @@ cleanup:
 static int store_open(struct inode* inode, struct file* file) {
   err_t err = SUCCESS;
 
-  CHECK_RETHROW(load_core(&g_core_header));
   g_core_header->action = CORE_ACTION_STORE;
 
   CHECK_RETHROW(hook_sleep_prepare());
