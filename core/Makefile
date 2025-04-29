@@ -1,17 +1,15 @@
 CC ?= gcc
 LD ?= ld
 OBJCOPY ?= objcopy
+VPATH := ../
 
 CFLAGS := -Wall -Wextra -Werror \
-					-I../include/ -I. -ffreestanding -static -O0 -fno-zero-initialized-in-bss \
+					-I../shared/include/ -I. -ffreestanding -static -O0 -fno-zero-initialized-in-bss \
 					-D CORE \
-					-fno-pic -masm=intel \
+					-fno-pic \
 					-ffunction-sections -fno-stack-protector -mno-sse -mno-red-zone -mgeneral-regs-only
 LDFLAGS := -ffreestanding -static -O0 -nostdlib
-LD_SCRIPT_FLAGS := -E -P -x c -I../include/ 
-
-OBJ_DIR := obj
-BUILD_DIR := build
+LD_SCRIPT_FLAGS := -E -P -x c -I../shared/include/ 
 
 include rm/Makefile
 include pm/Makefile
@@ -20,13 +18,15 @@ include pm/Makefile
 LDFLAGS += -lgcc
 
 OBJS += core.o
-OBJS += pci.o pci_utils.o
 OBJS += alloc.o
 OBJS += dump.o
 OBJS += acpi.o
 
 include drivers/Makefile
 OBJS += $(addprefix drivers/,$(DRIVERS_OBJS))
+
+include ../shared/Makefile
+OBJS += $(addprefix shared/,$(SHARED_OBJS))
 
 ifdef CORE_GCC_DEBUG
 	CFLAGS += -gdwarf -g3

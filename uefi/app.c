@@ -26,9 +26,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
     return EFI_LOAD_ERROR;
   }
 
-  if (EFI_ERROR(reserve_memory(CORE_RM_PHYS_ADDR, CORE_MAX_RM_PHYS_MEM_SIZE))) {
-    return EFI_LOAD_ERROR;
-  }
+  CHECK_RETHROW(fill_core_header(core_header));
 
   if (EFI_ERROR(reserve_memory(CORE_PM_PHYS_ADDR, CORE_MAX_PM_PHYS_MEM_SIZE))) {
     return EFI_LOAD_ERROR;

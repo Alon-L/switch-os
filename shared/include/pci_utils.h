@@ -1,5 +1,4 @@
-#ifndef _PCI_UTILS_H
-#define _PCI_UTILS_H
+#pragma once
 
 #include <stdint.h>
 
@@ -83,5 +82,3 @@ DECLARE_PCI_OP(8, uint8_t);
 DECLARE_PCI_OP(16, uint16_t);
 DECLARE_PCI_OP(32, uint32_t);
 #undef DECLARE_PCI_OP
-
-#endif

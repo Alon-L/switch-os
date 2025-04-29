@@ -10,7 +10,7 @@ switch_os-y += suspend/hook_sleep_prepare.o
 # Shipped core binary
 switch_os-y += core.o
 
-ccflags-y := -I$(src)/../include -DMODULE
+ccflags-y := -I$(src)/../shared/include -DMODULE
 
 ifdef DEBUG
 	ccflags-y += -D DEBUG
