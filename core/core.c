@@ -50,7 +50,7 @@ __attribute__((noreturn)) void core_main(void) {
 cleanup:
   acpi_setup();
 
-  TRACE("Waking up kernel...\n");
+  TRACE("Waking up kernel at %x...\n", g_kernel_waking_vector);
   acpi_return_kernel();
 
   // We should be in suspend by this point.

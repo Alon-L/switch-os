@@ -9,7 +9,8 @@ CFLAGS := -I$(GNU_EFI)/inc \
 	-fpic -ffreestanding -fno-stack-protector \
 	-fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args \
 	-I../shared/include/ \
-	-D UEFI
+	-D UEFI \
+	-D trace=AsciiPrint
 
 LDFLAGS := -shared -Bsymbolic \
 	-L$(GNU_EFI)/x86_64/lib -L$(GNU_EFI)/x86_64/gnuefi \

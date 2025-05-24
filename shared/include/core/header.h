@@ -23,6 +23,8 @@ enum core_action {
   CORE_ACTION_INVALID,
 };
 
+#define MAX_RAM_AREAS 64
+
 struct core_header {
   // [READ]   A magic to validate the beginning of the core header. Must be
   //          `CORE_HEADER_MAGIC`.
@@ -57,10 +59,10 @@ struct core_header {
     uint32_t bars[6];
   } disk_pci;
 
-  // [WRITE]  All the memory areas listed as RAM. Core uses these areas to
-  //          create the memory dump. Must be filled.
-  uint8_t ram_areas_size;
-  struct mem_area ram_areas[32];
+  // [WRITE]  All the memory areas listed as RAM which can be used by the OS.
+  //          Core uses these areas to create the memory dump. Must be filled.
+  uint32_t ram_areas_size;
+  struct mem_area ram_areas[MAX_RAM_AREAS];
 };
 
 static inline bool is_core_header_magic_valid(const struct core_header* core_header) {

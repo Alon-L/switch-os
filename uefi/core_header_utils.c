@@ -10,7 +10,7 @@
 #define DISK_PCI_VENDOR_ID 0x1AF4
 #define DISK_PCI_DEVICE_ID 0x1001
 
-static const struct pci_dev_id disk_pci_id = {.vendor_id = DISK_PCI_VENDOR_ID, .device_id = DISK_PCI_DEVICE_ID};
+static const struct pci_dev_id g_disk_pci_id = {.vendor_id = DISK_PCI_VENDOR_ID, .device_id = DISK_PCI_DEVICE_ID};
 
 /**
  * Locates the RSDP in the EFI SystemTable, and fills `core_header.rsdp`.
@@ -47,7 +47,7 @@ static err_t fill_disk_pci(struct core_header* core_header) {
   err_t err = SUCCESS;
 
   struct pci_dev disk_pci_dev = {0};
-  CHECK_RETHROW(lookup_pci_dev(&disk_pci_dev, &disk_pci_id));
+  CHECK_RETHROW(lookup_pci_dev(&disk_pci_dev, &g_disk_pci_id));
 
   // Fill the disk's pci bus information.
   core_header->disk_pci.addr.bus = disk_pci_dev.addr.bus;
@@ -60,6 +60,65 @@ static err_t fill_disk_pci(struct core_header* core_header) {
     CHECK_RETHROW(pci_get_bar(&disk_pci_dev, i, &pci_bar));
     core_header->disk_pci.bars[i] = pci_bar.addr;
   }
+
+cleanup:
+  return err;
+}
+
+/**
+ * According to the UEFI specs (table 7.6 in section 7.2), all of the following memory types can be used
+ * by the OS as RAM after full initialization.
+ */
+static const EFI_MEMORY_TYPE g_usable_memory_types[] = {
+  EfiLoaderCode,         EfiLoaderData,        EfiBootServicesCode, EfiBootServicesData,
+  EfiConventionalMemory, EfiACPIReclaimMemory, EfiPersistentMemory,
+};
+
+/**
+ * Returns whether a given memory descriptor can be used by the OS as RAM.
+ */
+static bool is_memory_desc_usable(const EFI_MEMORY_DESCRIPTOR* desc) {
+  for (size_t i = 0; i < ARRAY_SIZE(g_usable_memory_types); i++) {
+    if (desc->Type == g_usable_memory_types[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Inserts a memory descriptor into `core_header->ram_areas`.
+ *
+ * This also defragments consecutive descriptors so the table is as small as possible.
+ */
+static err_t insert_desc(struct core_header* core_header, const EFI_MEMORY_DESCRIPTOR* desc) {
+  err_t err = SUCCESS;
+
+  CHECK_TRACE(core_header->ram_areas_size < ARRAY_SIZE(core_header->ram_areas),
+              "No space left for additional RAM areas!\n");
+
+  size_t desc_size = desc->NumberOfPages * EFI_PAGE_SIZE;
+  size_t desc_end = desc->PhysicalStart + desc_size;
+
+  // Try to defragment the new descriptor into an existing consecutive descriptor.
+  for (size_t i = 0; i < core_header->ram_areas_size; i++) {
+    struct mem_area* area = &core_header->ram_areas[i];
+
+    if (area->start == desc_end) {
+      // An existing descriptor begins where the new descriptor ends.
+      area->start = desc->PhysicalStart;
+      goto cleanup;
+    } else if (area->start + area->size == desc->PhysicalStart) {
+      // An existing descriptor ends where the new descriptor starts.
+      area->size += desc_size;
+      goto cleanup;
+    }
+  }
+
+  core_header->ram_areas[core_header->ram_areas_size].start = desc->PhysicalStart;
+  core_header->ram_areas[core_header->ram_areas_size].size = desc_size;
+
+  core_header->ram_areas_size++;
 
 cleanup:
   return err;
@@ -94,18 +153,12 @@ static err_t fill_ram_areas(struct core_header* core_header) {
   size_t ram_areas_size = 0;
   for (size_t i = 0; i + desc_size <= memory_map_size; i += desc_size) {
     EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((void*)memory_map + i);
-    if (desc->Type != EfiConventionalMemory) {
+    if (!is_memory_desc_usable(desc)) {
       continue;
     }
 
-    CHECK(ram_areas_size < ARRAY_SIZE(core_header->ram_areas));
-    core_header->ram_areas[ram_areas_size].start = desc->PhysicalStart;
-    core_header->ram_areas[ram_areas_size].size = desc->NumberOfPages * EFI_PAGE_SIZE;
-
-    ram_areas_size++;
+    CHECK_RETHROW(insert_desc(core_header, desc));
   }
-
-  core_header->ram_areas_size = ram_areas_size;
 
 cleanup:
   if (memory_map != NULL) {

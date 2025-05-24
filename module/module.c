@@ -13,11 +13,12 @@
 
 struct core_header* g_core_header = NULL;
 
-void trace(const char* fmt, ...) {
+unsigned long trace(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  vprintk(fmt, args);
+  unsigned long res = vprintk(fmt, args);
   va_end(args);
+  return res;
 }
 
 static err_t get_core_header_virt(struct core_header** core_header_out) {

@@ -40,7 +40,7 @@ static void print_unsigned_num(uint64_t num, uint8_t base) {
 
 // TODO: Implement a real version of this function. This implementation contains
 // bugs and buffer overflows.
-void trace(const char* fmt, ...) {
+unsigned long trace(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
 
@@ -92,4 +92,5 @@ void trace(const char* fmt, ...) {
   }
 
   va_end(args);
+  return 0;
 }

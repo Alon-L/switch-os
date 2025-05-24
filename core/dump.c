@@ -29,7 +29,7 @@ struct dump_header {
 
   // The kernel's RAM areas.
   uint32_t areas_size;
-  struct disk_mem_area areas[64];
+  struct disk_mem_area areas[MAX_RAM_AREAS];
 } __attribute__((aligned(VIRTIO_BLK_SECTOR_SIZE)));
 
 _Static_assert(sizeof(struct dump_header) % VIRTIO_BLK_SECTOR_SIZE == 0,
@@ -151,13 +151,10 @@ err_t disk_store_dump(struct virtio_blk_dev* virtio_blk_dev) {
 
   // Write all the memory areas to the disk.
   for (size_t i = 0; i < header.areas_size; i++) {
-    struct disk_mem_area* disk_area = &header.areas[i];
+    const struct disk_mem_area* disk_area = &header.areas[i];
     CHECK_RETHROW(
       write_virtio_blk(virtio_blk_dev, disk_area->sector, (void*)disk_area->area.start, disk_area->area.size));
-  }
 
-  // Validate the responses for the prior writes.
-  for (size_t i = 0; i < header.areas_size; i++) {
     CHECK_RETHROW(consume_response_virtio_blk(virtio_blk_dev));
   }
 
@@ -192,16 +189,13 @@ err_t disk_load_dump(struct virtio_blk_dev* virtio_blk_dev) {
   // Read all the memory areas from the disk.
   // This reads directly into the RAM addresses the areas correspond to.
   for (size_t i = 0; i < header.areas_size; i++) {
-    struct disk_mem_area* disk_area = &header.areas[i];
+    const struct disk_mem_area* disk_area = &header.areas[i];
 
     // This read is safe, since the valid header's memory areas match the RAM areas. Therefore, this reads into RAM
     // memory.
     CHECK_RETHROW(
       read_virtio_blk(virtio_blk_dev, disk_area->sector, (void*)disk_area->area.start, disk_area->area.size));
-  }
 
-  // Validate the responses for the prior reads.
-  for (size_t i = 0; i < header.areas_size; i++) {
     CHECK_RETHROW(consume_response_virtio_blk(virtio_blk_dev));
   }
 
@@ -258,6 +252,8 @@ err_t disk_switch_dump(struct virtio_blk_dev* virtio_blk_dev) {
 
   // Switch every memory area in the dump.
   for (size_t i = 0; i < header.areas_size; i++) {
+    TRACE("Switching area (%lu): %lx - %lx\n", i, header.areas[i].area.start,
+          header.areas[i].area.start + header.areas[i].area.size);
     CHECK_RETHROW(switch_memory_area(virtio_blk_dev, &header.areas[i]));
   }
 
