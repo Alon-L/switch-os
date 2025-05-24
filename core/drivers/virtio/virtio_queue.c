@@ -118,7 +118,7 @@ cleanup:
 }
 
 void free_queue_desc(struct virtio_queue* queue, uint16_t desc) {
-  // Check for weather the descriptor is valid.
+  // Check weather the descriptor is valid.
   if (desc == VIRTIO_INVALID_DESC || desc >= queue->size) {
     return;
   }

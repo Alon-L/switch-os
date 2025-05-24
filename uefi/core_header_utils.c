@@ -10,7 +10,7 @@
 #define DISK_PCI_VENDOR_ID 0x1AF4
 #define DISK_PCI_DEVICE_ID 0x1001
 
-static const struct pci_dev_id disk_pci_id = {.vendor_id = DISK_PCI_VENDOR_ID, .device_id = DISK_PCI_DEVICE_ID};
+static const struct pci_dev_id g_disk_pci_id = {.vendor_id = DISK_PCI_VENDOR_ID, .device_id = DISK_PCI_DEVICE_ID};
 
 /**
  * Locates the RSDP in the EFI SystemTable, and fills `core_header.rsdp`.
@@ -47,7 +47,7 @@ static err_t fill_disk_pci(struct core_header* core_header) {
   err_t err = SUCCESS;
 
   struct pci_dev disk_pci_dev = {0};
-  CHECK_RETHROW(lookup_pci_dev(&disk_pci_dev, &disk_pci_id));
+  CHECK_RETHROW(lookup_pci_dev(&disk_pci_dev, &g_disk_pci_id));
 
   // Fill the disk's pci bus information.
   core_header->disk_pci.addr.bus = disk_pci_dev.addr.bus;

@@ -15,7 +15,7 @@ struct virtio_queue {
   uint64_t notify_off;
 
 #define VIRTIO_INVALID_FREE_HEAD 0xffff
-  // The head of the free descriptors list. Every descriptor in this list is the
+  // The head of the free descriptors list. Every descriptor in this list is
   // linked to the next one using the `next` field.
   // The final free descriptor in the list holds `VIRTIO_INVALID_FREE_HEAD` in
   // the `next` field. If the head is `VIRTIO_INVALID_FREE_HEAD` then there are
@@ -68,7 +68,7 @@ err_t read_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, ui
  * @param size           - The size of the data to write. Must be aligned to 512
  * bytes (sector size).
  */
-err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, uint8_t* data, size_t size);
+err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, const uint8_t* data, size_t size);
 
 /**
  * Waits for a response, then pops and validates it.

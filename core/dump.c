@@ -258,6 +258,8 @@ err_t disk_switch_dump(struct virtio_blk_dev* virtio_blk_dev) {
 
   // Switch every memory area in the dump.
   for (size_t i = 0; i < header.areas_size; i++) {
+    TRACE("Switching area (%lu): %lx - %lx\n", i, header.areas[i].area.start,
+          header.areas[i].area.start + header.areas[i].area.size);
     CHECK_RETHROW(switch_memory_area(virtio_blk_dev, &header.areas[i]));
   }
 

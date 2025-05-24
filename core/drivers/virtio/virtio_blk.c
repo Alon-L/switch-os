@@ -304,10 +304,10 @@ cleanup:
   return err;
 }
 
-err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, uint8_t* data, size_t size) {
+err_t write_virtio_blk(struct virtio_blk_dev* virtio_blk_dev, uint64_t sector, const uint8_t* data, size_t size) {
   err_t err = SUCCESS;
 
-  CHECK_RETHROW(request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_OUT, sector, data, size));
+  CHECK_RETHROW(request_virtio_blk(virtio_blk_dev, VIRTIO_BLK_T_OUT, sector, (uint8_t*)data, size));
 
 cleanup:
   return err;
