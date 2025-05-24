@@ -29,7 +29,7 @@ struct dump_header {
 
   // The kernel's RAM areas.
   uint32_t areas_size;
-  struct disk_mem_area areas[64];
+  struct disk_mem_area areas[MAX_RAM_AREAS];
 } __attribute__((aligned(VIRTIO_BLK_SECTOR_SIZE)));
 
 _Static_assert(sizeof(struct dump_header) % VIRTIO_BLK_SECTOR_SIZE == 0,
