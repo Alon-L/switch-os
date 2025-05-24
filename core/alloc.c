@@ -35,7 +35,7 @@ struct allocator {
   _Static_assert(_block_size >= sizeof(struct free_block),                           \
                  "Allocator's block size is not large enough to contain the free block header.")
 
-DEFINE_ALLOCATOR(32, 32 * 2048, 32);
+DEFINE_ALLOCATOR(32, 32 * 4096, 32);
 DEFINE_ALLOCATOR(64, 64 * 1024, 64);
 DEFINE_ALLOCATOR(128, 128 * 1024, 128);
 DEFINE_ALLOCATOR(256, 256 * 1024, 256);
