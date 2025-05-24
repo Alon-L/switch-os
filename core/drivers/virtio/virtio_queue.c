@@ -106,7 +106,8 @@ err_t alloc_queue_desc(struct virtio_queue* queue, uint16_t* free_desc_out) {
   uint16_t free_head = queue->free_head;
 
   // Check there are free descriptors to be used.
-  CHECK(free_head != VIRTIO_INVALID_FREE_HEAD);
+  CHECK_TRACE(free_head != VIRTIO_INVALID_FREE_HEAD,
+              "Unable to allocate a descriptor, since the descriptors queue is full!");
 
   // Update the head of the free descriptors list.
   queue->free_head = queue->desc[free_head].next;

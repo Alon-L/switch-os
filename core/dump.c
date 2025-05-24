@@ -151,13 +151,10 @@ err_t disk_store_dump(struct virtio_blk_dev* virtio_blk_dev) {
 
   // Write all the memory areas to the disk.
   for (size_t i = 0; i < header.areas_size; i++) {
-    struct disk_mem_area* disk_area = &header.areas[i];
+    const struct disk_mem_area* disk_area = &header.areas[i];
     CHECK_RETHROW(
       write_virtio_blk(virtio_blk_dev, disk_area->sector, (void*)disk_area->area.start, disk_area->area.size));
-  }
 
-  // Validate the responses for the prior writes.
-  for (size_t i = 0; i < header.areas_size; i++) {
     CHECK_RETHROW(consume_response_virtio_blk(virtio_blk_dev));
   }
 
@@ -192,16 +189,13 @@ err_t disk_load_dump(struct virtio_blk_dev* virtio_blk_dev) {
   // Read all the memory areas from the disk.
   // This reads directly into the RAM addresses the areas correspond to.
   for (size_t i = 0; i < header.areas_size; i++) {
-    struct disk_mem_area* disk_area = &header.areas[i];
+    const struct disk_mem_area* disk_area = &header.areas[i];
 
     // This read is safe, since the valid header's memory areas match the RAM areas. Therefore, this reads into RAM
     // memory.
     CHECK_RETHROW(
       read_virtio_blk(virtio_blk_dev, disk_area->sector, (void*)disk_area->area.start, disk_area->area.size));
-  }
 
-  // Validate the responses for the prior reads.
-  for (size_t i = 0; i < header.areas_size; i++) {
     CHECK_RETHROW(consume_response_virtio_blk(virtio_blk_dev));
   }
 
