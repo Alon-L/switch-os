@@ -16,5 +16,5 @@ obj/pm/%.o: pm/%.S
 	mkdir -p $(dir $@)
 	$(CC) -c $^ -o $@ $(PM_CFLAGS)
 
-build/pm.bin: $(PM_OBJS_IN_OBJ_DIR) pm/script.ld.gen
+build/pm.elf: $(PM_OBJS_IN_OBJ_DIR) pm/script.ld.gen
 	$(CC) $(PM_OBJS_IN_OBJ_DIR) -T pm/script.ld.gen -o $@ $(PM_LDFLAGS)

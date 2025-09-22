@@ -9,6 +9,6 @@ obj/rm/%.o: rm/%.S
 	mkdir -p $(dir $@)
 	$(CC) -c $^ -o $@ $(RM_CFLAGS)
 
-build/rm.bin: $(RM_OBJS_IN_OBJ_DIR) rm/script.ld.gen
+build/rm.elf: $(RM_OBJS_IN_OBJ_DIR) rm/script.ld.gen
 	mkdir -p $(dir $@)
 	$(CC) $(RM_OBJS_IN_OBJ_DIR) -T rm/script.ld.gen -o $@ $(RM_LDFLAGS)

@@ -13,6 +13,6 @@
 err_t load_core(struct core_header** core_addr_out);
 
 /*
- * Unloads core's memory that was previously loaded with `load_core`.
+ * Frees core's memory that was previously loaded with `load_core`.
  */
-void unload_core(struct core_header* core_header);
+void free_core(struct core_header* core_header);
