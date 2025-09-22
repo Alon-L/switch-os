@@ -6,6 +6,8 @@ SECTIONS
 {
   . = CORE_RM_PHYS_ADDR;
 
+  .header : {}
+
   .text : {
     *(.text.core_wakeup);
     *(.text*);
@@ -13,6 +15,7 @@ SECTIONS
 
   .data : {
     *(.data*);
+    *(.rodata*);
     *(.bss*);
   }
 }

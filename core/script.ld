@@ -4,7 +4,7 @@ SECTIONS
 {
   . = CORE_PHYS_ADDR;
 
-  .core_header : {
+  .header : {
     *(.core_header*);
   }
 
@@ -14,9 +14,10 @@ SECTIONS
     *(.text*);
   }
 
-  . = ALIGN(128);
+  . = ALIGN(4096);
   .data : {
     *(.data*);
+    *(.rodata*);
     *(.bss*);
   }
 }

@@ -9,25 +9,23 @@
 #include <efilib.h>
 #include <error.h>
 
-extern char _binary_build_core_bin_trimmed_start[];
-extern char _binary_build_core_bin_trimmed_end[];
+extern char _binary_build_core_raw_bin_start[];
+extern char _binary_build_core_raw_bin_end[];
 
-extern char _binary_build_rm_bin_trimmed_start[];
-extern char _binary_build_rm_bin_trimmed_end[];
+extern char _binary_build_rm_raw_bin_start[];
+extern char _binary_build_rm_raw_bin_end[];
 
-extern char _binary_build_pm_bin_trimmed_start[];
-extern char _binary_build_pm_bin_trimmed_end[];
+extern char _binary_build_pm_raw_bin_start[];
+extern char _binary_build_pm_raw_bin_end[];
 
-#define CORE_START (_binary_build_core_bin_trimmed_start)
-#define CORE_SIZE ((uintptr_t)_binary_build_core_bin_trimmed_end - (uintptr_t)_binary_build_core_bin_trimmed_start)
+#define CORE_START (_binary_build_core_raw_bin_start)
+#define CORE_SIZE ((uintptr_t)_binary_build_core_raw_bin_end - (uintptr_t)_binary_build_core_raw_bin_start)
 
-#define CORE_RM_START (_binary_build_rm_bin_trimmed_start)
-#define CORE_RM_SIZE ((uintptr_t)_binary_build_rm_bin_trimmed_end - (uintptr_t)_binary_build_rm_bin_trimmed_start)
+#define CORE_RM_START (_binary_build_rm_raw_bin_start)
+#define CORE_RM_SIZE ((uintptr_t)_binary_build_rm_raw_bin_end - (uintptr_t)_binary_build_rm_raw_bin_start)
 
-#define CORE_PM_START (_binary_build_pm_bin_trimmed_start)
-#define CORE_PM_SIZE ((uintptr_t)_binary_build_pm_bin_trimmed_end - (uintptr_t)_binary_build_pm_bin_trimmed_start)
-
-#define ALIGN_UP(x, align_to) (((x) + ((align_to) - 1)) & ~((align_to) - 1))
+#define CORE_PM_START (_binary_build_pm_raw_bin_start)
+#define CORE_PM_SIZE ((uintptr_t)_binary_build_pm_raw_bin_end - (uintptr_t)_binary_build_pm_raw_bin_start)
 
 /**
  * Allocate pages of type EfiReservedMemoryType to reserve this memory from usage by the OS.
@@ -65,6 +63,7 @@ err_t load_core(struct core_header** core_header_out) {
   CHECK_TRACE(CORE_RM_SIZE <= CORE_MAX_RM_PHYS_MEM_SIZE, "Not enough reserved RAM for core rm\n");
   CHECK_TRACE(CORE_PM_SIZE <= CORE_MAX_PM_PHYS_MEM_SIZE, "Not enough reserved RAM for core pm\n");
 
+  // TODO: If one of these fail, we leak the already loaded memory
   CHECK_RETHROW(load_memory(CORE_PHYS_ADDR, CORE_START, CORE_SIZE));
   CHECK_RETHROW(load_memory(CORE_RM_PHYS_ADDR, CORE_RM_START, CORE_RM_SIZE));
   CHECK_RETHROW(load_memory(CORE_PM_PHYS_ADDR, CORE_PM_START, CORE_PM_SIZE));
@@ -85,13 +84,13 @@ static err_t free_memory(uintptr_t start, size_t size) {
   err_t err = SUCCESS;
   size_t pages = ALIGN_UP(size, EFI_PAGE_SIZE) / EFI_PAGE_SIZE;
 
-  CHECK(uefi_call_wrapper(BS->FreePages, 4, start, pages) == EFI_SUCCESS);
+  CHECK(uefi_call_wrapper(BS->FreePages, 2, start, pages) == EFI_SUCCESS);
 
 cleanup:
   return err;
 }
 
-void unload_core(struct core_header* core_header) {
+void free_core(struct core_header* core_header) {
   free_memory(CORE_PHYS_ADDR, CORE_SIZE);
   free_memory(CORE_RM_PHYS_ADDR, CORE_RM_SIZE);
   free_memory(CORE_PM_PHYS_ADDR, CORE_PM_SIZE);

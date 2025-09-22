@@ -12,14 +12,18 @@ SECTIONS
 {
   . = CORE_PM_PHYS_ADDR;
 
+  .header : {}
+
+  . = ALIGN(4096);
   .text : {
     *(.text.pm_stub);
     *(.text*);
   }
 
-  . = ALIGN(128);
+  . = ALIGN(4096);
   .data : {
     *(.data*);
+    *(.rodata*);
     *(.bss*);
 
     . = ALIGN(4096);

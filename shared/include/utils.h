@@ -23,4 +23,8 @@
   })
 #endif
 
+#ifndef ALIGN_UP
+#define ALIGN_UP(x, align_to) (((x) + ((align_to) - 1)) & ~((align_to) - 1))
+#endif
+
 #endif
