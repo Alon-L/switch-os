@@ -4,12 +4,12 @@ ifneq (,$(wildcard ./.env))
   export
 endif
 
-ROOT_DIR := $(CURDIR)
-VPATH := $(ROOT_DIR)
+export ROOT_DIR := $(CURDIR)
+export VPATH := $(ROOT_DIR)
 
-CC ?= gcc
-LD ?= ld
-OBJCOPY ?= objcopy
+export CC ?= gcc
+export LD ?= ld
+export OBJCOPY ?= objcopy
 
 QEMU ?= qemu-system-x86_64
 QEMU_ADDITIONAL_FLAGS ?=
