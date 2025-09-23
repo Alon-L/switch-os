@@ -3,6 +3,7 @@
 #include <efilib.h>
 #include <error.h>
 
+#include "acpi/hook_pts.h"
 #include "acpi/tables.h"
 #include "core_header_utils.h"
 #include "core_loader.h"
@@ -23,6 +24,9 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
 
   TRACE("Hooking UEFI services...\n");
   CHECK_RETHROW(hook_services());
+
+  TRACE("Hooking the _PTS aml method...\n");
+  CHECK_RETHROW(create_or_hook_pts());
 
   TRACE("Filling core header...\n");
   CHECK_RETHROW(fill_core_header(core_header));

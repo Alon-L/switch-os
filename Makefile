@@ -10,6 +10,7 @@ export VPATH := $(ROOT_DIR)
 export CC ?= gcc
 export LD ?= ld
 export OBJCOPY ?= objcopy
+export IASL ?= iasl
 
 QEMU ?= qemu-system-x86_64
 QEMU_ADDITIONAL_FLAGS ?=

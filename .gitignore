@@ -12,6 +12,7 @@
 *.mod.c
 *.bin
 *.ld.gen
+obj/
 
 *~
 .*~

@@ -4,6 +4,7 @@ CFLAGS := -I$(GNU_EFI)/inc \
 	-fpic -ffreestanding -fno-stack-protector \
 	-fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args \
 	-I . \
+	-I obj/include \
 	-I $(ROOT_DIR)/shared/include/ \
 	-D GNU_EFI_USE_MS_ABI \
 	-D UEFI
@@ -31,7 +32,7 @@ OBJS += app.o
 OBJS += core_header_utils.o
 OBJS += core_loader.o
 
-OBJS += acpi/tables.o
+include acpi/Makefile
 
 OBJS += hooks/hooks_loader.o
 OBJS += hooks/loaders/get_memory_map.o
@@ -54,7 +55,7 @@ hooks/raw/build/hooks.o:
 
 obj/%.o: %.c
 	mkdir -p $(dir $@)
-	$(CC) -c $^ -o $@ $(CFLAGS)
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 obj/app.so: $(OBJS) $(GNU_EFI)/x86_64/gnuefi/crt0-efi-x86_64.o hooks/raw/build/hooks.o
 	mkdir -p $(dir $@)
