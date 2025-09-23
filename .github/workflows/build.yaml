@@ -33,6 +33,9 @@ jobs:
         wget ${{ matrix.linux-version.deb.all }}
         wget ${{ matrix.linux-version.deb.generic }}
         sudo apt install -y ./*.deb
+    - name: Install dependencies
+      run: |
+        sudo apt install -y iasl
     - name: Install GNU-EFI
       run: |
         git clone https://git.code.sf.net/p/gnu-efi/code ${{ github.workspace }}/gnu-efi

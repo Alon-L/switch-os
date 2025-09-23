@@ -20,11 +20,28 @@ typedef enum {
     }                                                                   \
   } while (0)
 
+#define CHECK_RETHROW_SILENT(expr)                                      \
+  do {                                                                  \
+    err_t _err = (expr);                                                \
+    if (!IS_SUCCESS(_err)) {                                            \
+      err = _err;                                                       \
+      goto cleanup;                                                     \
+    }                                                                   \
+  } while (0)
+
 #define CHECK_TRACE(expr, fmt, ...) \
   do {                              \
     if (!(expr)) {                  \
       err = ERROR;                  \
       TRACE(fmt, ##__VA_ARGS__);    \
+      goto cleanup;                 \
+    }                               \
+  } while (0)
+
+#define CHECK_SILENT(expr)          \
+  do {                              \
+    if (!(expr)) {                  \
+      err = ERROR;                  \
       goto cleanup;                 \
     }                               \
   } while (0)

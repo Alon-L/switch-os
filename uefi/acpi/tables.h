@@ -113,7 +113,6 @@ struct acpi_fadt {
   uint64_t hypervisor_vendor_identity;
 } __attribute__((packed));
 
-#define ACPI_GLOBAL_LOCK_OWNED (1 << 1)
 struct acpi_facs {
   char signature[4];
   uint32_t length;

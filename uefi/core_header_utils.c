@@ -3,6 +3,7 @@
 #include <efidef.h>
 #include <efilib.h>
 
+#include "acpi/tables.h"
 #include "pci.h"
 
 // TODO: This is currently hard coded to a virtio blk device. Make this
@@ -13,30 +14,10 @@
 static const struct pci_dev_id g_disk_pci_id = {.vendor_id = DISK_PCI_VENDOR_ID, .device_id = DISK_PCI_DEVICE_ID};
 
 /**
- * Locates the RSDP in the EFI SystemTable, and fills `core_header.rsdp`.
+ * Fills `core_header.rsdp` with `g_rsdp`.
  */
-static err_t fill_rsdp(struct core_header* core_header) {
-  err_t err = SUCCESS;
-  static EFI_GUID acpi_20_table_guid = ACPI_20_TABLE_GUID;
-  void* rsdp = NULL;
-
-  CHECK(ST->ConfigurationTable != NULL);
-
-  for (size_t i = 0; i < ST->NumberOfTableEntries; i++) {
-    EFI_CONFIGURATION_TABLE* table = &ST->ConfigurationTable[i];
-
-    if (CompareGuid(&table->VendorGuid, &acpi_20_table_guid) == 0) {
-      // The RSDP should only appear once.
-      CHECK(rsdp == NULL);
-      rsdp = table->VendorTable;
-    }
-  }
-
-  CHECK_TRACE(rsdp != NULL, "Unable to find the RSDP\n");
-  core_header->rsdp = (uint64_t)(uintptr_t)rsdp;
-
-cleanup:
-  return err;
+static void fill_rsdp(struct core_header* core_header) {
+  core_header->rsdp = (uint64_t)(uintptr_t)g_rsdp;
 }
 
 /**
@@ -170,7 +151,7 @@ cleanup:
 err_t fill_core_header(struct core_header* core_header) {
   err_t err = SUCCESS;
 
-  CHECK_RETHROW(fill_rsdp(core_header));
+  fill_rsdp(core_header);
   CHECK_RETHROW(fill_disk_pci(core_header));
   CHECK_RETHROW(fill_ram_areas(core_header));
 
