@@ -21,6 +21,13 @@ static void fill_rsdp(struct core_header* core_header) {
 }
 
 /**
+ * Fills `core_header.facs` with `g_facs`.
+ */
+static void fill_facs(struct core_header* core_header) {
+  core_header->facs = (uint64_t)(uintptr_t)g_facs;
+}
+
+/**
  * Locates the disk by enumerating the PCI bus, and fills `core_header->disk_pci`
  * with the disk's PCI location, and the BIOS-initialized BARs.
  */
@@ -152,6 +159,7 @@ err_t fill_core_header(struct core_header* core_header) {
   err_t err = SUCCESS;
 
   fill_rsdp(core_header);
+  fill_facs(core_header);
   CHECK_RETHROW(fill_disk_pci(core_header));
   CHECK_RETHROW(fill_ram_areas(core_header));
 

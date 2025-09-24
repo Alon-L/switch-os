@@ -8,8 +8,6 @@
 
 extern struct core_header g_core_header;
 
-uint32_t g_kernel_waking_vector = 0;
-
 err_t acpi_setup(void) {
   err_t err = SUCCESS;
 
@@ -40,17 +38,31 @@ void acpi_destroy(void) {
   uacpi_state_reset();
 }
 
-void acpi_return_kernel(void) {
+void acpi_return_kernel(uint32_t waking_vector) {
   uacpi_prepare_for_sleep_state(UACPI_SLEEP_STATE_S3);
 
-  if (g_kernel_waking_vector != 0) {
-    // This might occur after `uacpi_prepare_for_sleep_state`, since it calls the `_PTS` which is still hooked to
-    // override the waking vector to core's entry.
+  if (waking_vector != 0) {
+    // Setting the waking vector must occur after `uacpi_prepare_for_sleep_state`, since it calls the `_PTS` which is
+    // still hooked to override the waking vector to core's entry.
     // According to the ACPI specs, the `_PTS` should be executed prior to updating the waking vector anyway.
-    uacpi_set_waking_vector(g_kernel_waking_vector, 0);
+    uacpi_set_waking_vector(waking_vector, 0);
   } else {
     TRACE("Kernel waking vector not set!\n");
   }
 
   uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S3);
+}
+
+err_t find_original_waking_vector(uint32_t* waking_vector_out) {
+  err_t err = SUCCESS;
+
+  struct acpi_facs* facs = (struct acpi_facs*)(uintptr_t)g_core_header.facs;
+
+  uint32_t waking_vector = *(uint32_t*)facs->rsvd1;
+  CHECK(waking_vector != 0);
+
+  *waking_vector_out = waking_vector;
+
+cleanup:
+  return err;
 }

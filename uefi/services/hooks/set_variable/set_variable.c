@@ -15,10 +15,11 @@ EFI_STATUS EFIAPI _start(IN CHAR16* VariableName, IN EFI_GUID* VendorGuid, IN UI
   // by updating a UEFI variable every few steps in its sleep process.
   // Some of the writes of this variable occur after updating the waking vector, so we can override it right after.
   if (wstrcmp(VariableName, WINDOWS_SLEEP_CHECKPOINT_VARIABLE_NAME) == 0 &&
-      *g_hook_header.waking_vector_addr != CORE_MAIN_PHYS_ADDR) {
+      *g_hook_header.waking_vector_addr != CORE_RM_PHYS_ADDR) {
     TRACE("Updating the waking vector from the set_variable hook\n");
 
-    *g_hook_header.waking_vector_addr = CORE_MAIN_PHYS_ADDR;
+    *g_hook_header.original_waking_vector_addr = *g_hook_header.waking_vector_addr;
+    *g_hook_header.waking_vector_addr = CORE_RM_PHYS_ADDR;
   }
 
   // Call the original SetVariable function.

@@ -22,6 +22,7 @@ err_t hook_set_variable(void) {
   *(struct set_variable_hook_header*)g_loaded_set_variable.header = (struct set_variable_hook_header){
     .original_set_variable = gRT->SetVariable,
     .waking_vector_addr = &g_facs->firmware_waking_vector,
+    .original_waking_vector_addr = (uint32_t*)&g_facs->rsvd1,
   };
 
   g_original_set_variable = gRT->SetVariable;

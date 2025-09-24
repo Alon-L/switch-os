@@ -54,12 +54,12 @@ cleanup:
   return err;
 }
 
-err_t append_method(const uint8_t* hook_header_aml, size_t hook_header_size, const uint8_t* hook_body_aml,
-                    size_t hook_body_size) {
+err_t append_method(const struct aml_method_part* method_parts, size_t method_parts_size) {
   err_t err = SUCCESS;
 
-  CHECK_RETHROW(append_dsdt(hook_header_aml, hook_header_size));
-  CHECK_RETHROW(append_dsdt(hook_body_aml, hook_body_size));
+  for (size_t i = 0; i < method_parts_size; i++) {
+    CHECK_RETHROW(append_dsdt(method_parts[i].aml, method_parts[i].size));
+  }
 
 cleanup:
   return err;
@@ -95,15 +95,15 @@ cleanup:
   return err;
 }
 
-err_t hook_method(const char* name, const char* modified_name, const uint8_t* hook_header_aml, size_t hook_header_size,
-                  const uint8_t* hook_body_aml, size_t hook_body_size) {
+err_t hook_method(const char* name, const char* modified_name, const struct aml_method_part* hook_parts,
+                  size_t hook_parts_size) {
   err_t err = SUCCESS;
 
   CHECK_RETHROW(rename_method(name, modified_name));
 
   // Append the hook function. It is assumed to be named `name`, and contain a call to the original hook if needed by
   // calling `modified_name`.
-  CHECK_RETHROW(append_method(hook_header_aml, hook_header_size, hook_body_aml, hook_body_size));
+  CHECK_RETHROW(append_method(hook_parts, hook_parts_size));
 
 cleanup:
   return err;
