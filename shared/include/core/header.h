@@ -18,9 +18,9 @@ struct mem_area {
 };
 
 enum core_action {
+  CORE_ACTION_INVALID,
   CORE_ACTION_STORE,
   CORE_ACTION_SWITCH,
-  CORE_ACTION_INVALID,
 };
 
 #define MAX_RAM_AREAS 64
@@ -70,7 +70,7 @@ static inline bool is_core_header_magic_valid(const struct core_header* core_hea
 }
 
 static inline bool is_core_header_action_valid(const struct core_header* core_header) {
-  return core_header->action < CORE_ACTION_INVALID;
+  return core_header->action != CORE_ACTION_INVALID;
 }
 
 static inline bool is_core_header_original_waking_vector_valid(const struct core_header* core_header) {
