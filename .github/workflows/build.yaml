@@ -8,38 +8,20 @@ on:
 
 jobs:
   build-linux:
-    strategy:
-      matrix:
-        linux-version:
-        - version: 6.6.0-13-generic
-          deb:
-            all: http://launchpadlibrarian.net/698860017/linux-headers-6.6.0-13_6.6.0-13.13_all.deb
-            generic: http://launchpadlibrarian.net/698860014/linux-headers-6.6.0-13-generic_6.6.0-13.13_amd64.deb
-        - version: 6.11.0-9-generic
-          deb:
-            all: http://launchpadlibrarian.net/754119749/linux-headers-6.11.0-9_6.11.0-9.9_all.deb
-            generic: http://launchpadlibrarian.net/754119748/linux-headers-6.11.0-9-generic_6.11.0-9.9_amd64.deb
     runs-on: ubuntu-latest
     env:
-      LINUX_HEADERS: /lib/modules/${{ matrix.linux-version.version }}/build
       GNU_EFI: ${{ github.workspace }}/gnu-efi
 
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: Install kernel headers
-      run: |
-        wget ${{ matrix.linux-version.deb.all }}
-        wget ${{ matrix.linux-version.deb.generic }}
-        sudo apt install -y ./*.deb
     - name: Install dependencies
       run: |
         sudo apt install -y iasl
     - name: Install GNU-EFI
       run: |
-        git clone https://git.code.sf.net/p/gnu-efi/code ${{ github.workspace }}/gnu-efi
-        cd ${{ github.workspace }}/gnu-efi
-        make -j $(nproc)
+        git clone https://git.code.sf.net/p/gnu-efi/code $GNU_EFI
+        make -C $GNU_EFI -j $(nproc)
     - name: Build
       run: make build

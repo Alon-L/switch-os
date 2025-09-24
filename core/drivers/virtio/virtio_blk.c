@@ -150,7 +150,7 @@ cleanup:
 err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev) {
   err_t err = SUCCESS;
 
-  // We expect module to fill the device's pci address for us.
+  // We expect the UEFI app to fill the device's pci address for us.
   virtio_blk_dev->pci_dev.addr.bus = g_core_header.disk_pci.addr.bus;
   virtio_blk_dev->pci_dev.addr.device = g_core_header.disk_pci.addr.device;
   virtio_blk_dev->pci_dev.addr.function = g_core_header.disk_pci.addr.function;
@@ -160,7 +160,7 @@ err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev) {
   CHECK(virtio_blk_dev->pci_dev.vendor_id == VIRTIO_BLK_VENDOR_ID &&
         virtio_blk_dev->pci_dev.device_id == VIRTIO_BLK_DEVICE_ID);
 
-  // Restore the device's bars using the bars module filled for us.
+  // Restore the device's bars using the bars the UEFI app filled for us.
   // This is crucial since the device loses power when entering S3 suspend, and
   // loses the bar values.
   // The BIOS is the one initially responsible for configuring the bars for the
