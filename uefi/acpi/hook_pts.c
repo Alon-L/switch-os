@@ -48,11 +48,15 @@ err_t create_or_hook_pts(void) {
 
   CHECK_RETHROW(pts_relocate_facs_addr());
 
+  struct aml_method_part pts_parts[] = {
+    {.aml = SSDT___PTS, .size = sizeof(SSDT___PTS)},
+    {.aml = SSDT___PTS_FACS, .size = sizeof(SSDT___PTS_FACS)},
+  };
+
   if (find_method("_PTS", NULL, NULL) == SUCCESS) {
     // Hook the `_PTS` method by renaming it to `SPTS`, and creating a new `_PTS` method which calls the renamed `SPTS`.
     // See the code in `pts_hook.asl` for its implementation.
-    CHECK_RETHROW(
-      hook_method("_PTS", "SPTS", SSDT___PTS, sizeof(SSDT___PTS), SSDT___PTS_FACS, sizeof(SSDT___PTS_FACS)));
+    CHECK_RETHROW(hook_method("_PTS", "SPTS", pts_parts, ARRAY_SIZE(pts_parts)));
   } else {
     TRACE("Creating a _PTS method\n");
 
@@ -65,7 +69,7 @@ err_t create_or_hook_pts(void) {
     size_t call_spts_byte_count = AML_METHOD_NAME_LEN + 1;
     memset(SSDT___PTS_FACS + sizeof(SSDT___PTS_FACS) - call_spts_byte_count, AML_ZERO_OP, call_spts_byte_count);
 
-    CHECK_RETHROW(append_method(SSDT___PTS, sizeof(SSDT___PTS), SSDT___PTS_FACS, sizeof(SSDT___PTS_FACS)));
+    CHECK_RETHROW(append_method(pts_parts, ARRAY_SIZE(pts_parts)));
   }
 
 cleanup:

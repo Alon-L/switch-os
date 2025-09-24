@@ -15,13 +15,15 @@
  */
 err_t find_method(const char* name, size_t* start_out, struct acpi_pkg_length* pkg_length_out);
 
+struct aml_method_part {
+  const uint8_t* aml;
+  size_t size;
+};
+
 /**
  * Appends a method to the end of the DSDT table.
- *
- * This function accepts the method's header and body. This is to be compliant with IASL's AML output.
  */
-err_t append_method(const uint8_t* hook_header_aml, size_t hook_header_size, const uint8_t* hook_body_aml,
-                    size_t hook_body_size);
+err_t append_method(const struct aml_method_part* method_parts, size_t method_parts_size);
 
 /**
  * Hooks an existing AML method in the DSDT.
@@ -31,5 +33,5 @@ err_t append_method(const uint8_t* hook_header_aml, size_t hook_header_size, con
  * The appended method now becomes the real method, and it can decide whether to call the original method by calling
  * `modified_name`.
  */
-err_t hook_method(const char* name, const char* modified_name, const uint8_t* hook_header_aml, size_t hook_header_size,
-                  const uint8_t* hook_body_aml, size_t hook_body_size);
+err_t hook_method(const char* name, const char* modified_name, const struct aml_method_part* hook_parts,
+                  size_t hook_parts_size);
