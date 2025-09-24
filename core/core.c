@@ -15,15 +15,16 @@ __attribute__((section(".core_header"))) struct core_header g_core_header = {
 __attribute__((noreturn)) void core_main(void) {
   err_t err = SUCCESS;
   (void)err;
+  uint32_t kernel_waking_vector = 0;
 
   TRACE("Running switch os core...\n");
 
   acpi_destroy();
 
   core_init_allocators();
-  g_kernel_waking_vector = g_core_header.original_waking_vector;
 
   CHECK(is_core_header_valid(&g_core_header));
+  kernel_waking_vector = g_core_header.original_waking_vector;
 
   struct virtio_blk_dev virtio_blk_dev;
   CHECK_RETHROW(init_virtio_blk_dev(&virtio_blk_dev));
@@ -39,7 +40,7 @@ __attribute__((noreturn)) void core_main(void) {
       bool contains_dump = false;
       CHECK_RETHROW(does_disk_contain_dump(&virtio_blk_dev, &contains_dump));
       CHECK_TRACE(contains_dump, "Dump not found on disk. Aborting switch.\n");
-      CHECK_RETHROW(disk_switch_dump(&virtio_blk_dev));
+      CHECK_RETHROW(disk_switch_dump(&virtio_blk_dev, &kernel_waking_vector));
       break;
     }
     default: {
@@ -50,8 +51,8 @@ __attribute__((noreturn)) void core_main(void) {
 cleanup:
   acpi_setup();
 
-  TRACE("Waking up kernel at %x...\n", g_kernel_waking_vector);
-  acpi_return_kernel();
+  TRACE("Waking up kernel at %x...\n", kernel_waking_vector);
+  acpi_return_kernel(kernel_waking_vector);
 
   // We should be in suspend by this point.
 

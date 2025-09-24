@@ -25,15 +25,19 @@ err_t does_disk_contain_dump(struct virtio_blk_dev* virtio_blk_dev, bool* contai
  * This replaces all the current RAM areas with the areas stored in the dump.
  *
  * This function blocks until the dump is fully loaded.
+ *
+ * Returns the waking vector stored in the loaded dump.
  */
-err_t disk_load_dump(struct virtio_blk_dev* virtio_blk_dev);
+err_t disk_load_dump(struct virtio_blk_dev* virtio_blk_dev, uint32_t* dump_waking_vector_out);
 
 /**
  * Switch between a dump on the disk and the RAM.
  * This loads the dump from the disk to the RAM, and stores the RAM back to the disk.
  *
  * This function blocks until the everything is fully switched.
+ *
+ * Returns the waking vector stored in the loaded dump.
  */
-err_t disk_switch_dump(struct virtio_blk_dev* virtio_blk_dev);
+err_t disk_switch_dump(struct virtio_blk_dev* virtio_blk_dev, uint32_t* dump_waking_vector_out);
 
 #endif
