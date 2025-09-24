@@ -45,7 +45,7 @@ void free_hook(struct loaded_hook* loaded_hook, size_t hook_size);
 
 /**
  * Place hooks on the required UEFI runtime and boot services, and register any additional events that are required.
- * See the `loaders` and `raw` directories for a list of all hooks.
+ * See the `loaders` and `hooks` directories for a list of all hooks.
  */
 err_t hook_services(void);
 
