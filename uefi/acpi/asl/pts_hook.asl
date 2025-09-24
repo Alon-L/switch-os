@@ -9,7 +9,12 @@ DefinitionBlock ("", "SSDT", 2, "", "", 0x0)
     {
       Offset (12),
       FWAK, 32,
+      Offset (40),
+      RSV1, 32,
     }
+
+    // Store the original waking vector in the second reserved field.
+    RSV1 = FWAK
 
     // Overwrite the waking vector with core's entry.
     FWAK = CORE_RM_PHYS_ADDR

@@ -76,7 +76,7 @@ static err_t fill_dump_header(struct dump_header* header) {
   err_t err = SUCCESS;
 
   header->magic = CORE_DISK_DUMP_MAGIC;
-  header->waking_vector = g_core_header.original_waking_vector;
+  CHECK_RETHROW(find_original_waking_vector(&header->waking_vector));
 
   // Make sure all ram areas can fit inside the header.
   CHECK(g_core_header.ram_areas_size <= ARRAY_SIZE(header->areas));
@@ -259,7 +259,7 @@ err_t disk_switch_dump(struct virtio_blk_dev* virtio_blk_dev, uint32_t* dump_wak
 
   // Switch the waking vector.
   *dump_waking_vector_out = header.waking_vector;
-  header.waking_vector = g_core_header.original_waking_vector;
+  CHECK_RETHROW(find_original_waking_vector(&header.waking_vector));
 
   // Write the updated header (this is only required for the waking vector change).
   CHECK_RETHROW(write_dump_header(virtio_blk_dev, &header));

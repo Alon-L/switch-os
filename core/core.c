@@ -24,7 +24,7 @@ __attribute__((noreturn)) void core_main(void) {
   core_init_allocators();
 
   CHECK(is_core_header_valid(&g_core_header));
-  kernel_waking_vector = g_core_header.original_waking_vector;
+  CHECK_RETHROW(find_original_waking_vector(&kernel_waking_vector));
 
   struct virtio_blk_dev virtio_blk_dev;
   CHECK_RETHROW(init_virtio_blk_dev(&virtio_blk_dev));

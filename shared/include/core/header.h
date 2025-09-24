@@ -34,9 +34,8 @@ struct core_header {
   //          value other than `CORE_ACTION_INVALID`.
   enum core_action action;
 
-  // [WRITE]  The original waking vector of the kernel that entered core. Must be
-  //          filled.
-  uint32_t original_waking_vector;
+  // [WRITE]  The physical address of the ACPI FACS table. Must be filled.
+  uint64_t facs;
 
   // [WRITE]  The rsdp table's physical address. Must be filled.
   uint64_t rsdp;
@@ -73,8 +72,8 @@ static inline bool is_core_header_action_valid(const struct core_header* core_he
   return core_header->action != CORE_ACTION_INVALID;
 }
 
-static inline bool is_core_header_original_waking_vector_valid(const struct core_header* core_header) {
-  return core_header->original_waking_vector != 0;
+static inline bool is_core_header_facs_valid(const struct core_header* core_header) {
+  return core_header->facs != 0;
 }
 
 static inline bool is_core_header_rsdp_valid(const struct core_header* core_header) {
@@ -97,7 +96,7 @@ static inline bool is_core_header_ram_areas_valid(const struct core_header* core
 
 static inline bool is_core_header_valid(const struct core_header* core_header) {
   return is_core_header_magic_valid(core_header) && is_core_header_action_valid(core_header) &&
-         is_core_header_original_waking_vector_valid(core_header) && is_core_header_rsdp_valid(core_header) &&
+         is_core_header_facs_valid(core_header) && is_core_header_rsdp_valid(core_header) &&
          is_core_header_ram_areas_valid(core_header);
 }
 

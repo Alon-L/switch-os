@@ -24,4 +24,6 @@ void acpi_destroy(void);
  */
 void acpi_return_kernel(uint32_t waking_vector);
 
+err_t find_original_waking_vector(uint32_t* waking_vector_out);
+
 #endif

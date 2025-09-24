@@ -52,3 +52,17 @@ void acpi_return_kernel(uint32_t waking_vector) {
 
   uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S3);
 }
+
+err_t find_original_waking_vector(uint32_t* waking_vector_out) {
+  err_t err = SUCCESS;
+
+  struct acpi_facs* facs = (struct acpi_facs*)(uintptr_t)g_core_header.facs;
+
+  uint32_t waking_vector = *(uint32_t*)facs->rsvd1;
+  CHECK(waking_vector != 0);
+
+  *waking_vector_out = waking_vector;
+
+cleanup:
+  return err;
+}
