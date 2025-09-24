@@ -34,10 +34,10 @@ OBJS += core_loader.o
 
 include acpi/Makefile
 
-OBJS += hooks/hooks_loader.o
-OBJS += hooks/loaders/get_memory_map.o
-OBJS += hooks/loaders/set_variable.o
-OBJS += hooks/loaders/virtual_address_map_event.o
+OBJS += services/hooks_loader.o
+OBJS += services/loaders/get_memory_map.o
+OBJS += services/loaders/set_variable.o
+OBJS += services/loaders/virtual_address_map_event.o
 
 # Shipped core binary
 OBJS += core.o
@@ -47,17 +47,17 @@ OBJS += $(addprefix shared/,$(SHARED_OBJS))
 
 OBJS := $(addprefix obj/,$(OBJS))
 
-hooks/raw/build/hooks.o:
+services/hooks/build/hooks.o:
 	@mkdir -p $(@D)
-	$(MAKE) -C hooks/raw
+	$(MAKE) -C services/hooks
 
-.PHONY: hooks/raw/build/hooks.o
+.PHONY: services/hooks/build/hooks.o
 
 obj/%.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-obj/app.so: $(OBJS) $(GNU_EFI)/x86_64/gnuefi/crt0-efi-x86_64.o hooks/raw/build/hooks.o
+obj/app.so: $(OBJS) $(GNU_EFI)/x86_64/gnuefi/crt0-efi-x86_64.o services/hooks/build/hooks.o
 	mkdir -p $(dir $@)
 	$(LD) $(LDFLAGS) $^ -o $@ -lgnuefi -lefi
 
@@ -69,7 +69,7 @@ all: build/app.efi
 .DEFAULT_GOAL := all
 
 clean:
-	$(MAKE) -C hooks/raw clean
+	$(MAKE) -C services/hooks clean
 	rm -rf obj/*
 	rm -rf build/*
 

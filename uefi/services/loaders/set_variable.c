@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 #include "acpi/tables.h"
-#include "hooks/headers.h"
-#include "hooks/hooks_loader.h"
+#include "services/headers.h"
+#include "services/hooks_loader.h"
 
 DECLARE_HOOK_BINARY(set_variable);
 

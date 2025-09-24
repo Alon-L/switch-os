@@ -7,7 +7,7 @@
 #include "acpi/tables.h"
 #include "core_header_utils.h"
 #include "core_loader.h"
-#include "hooks/hooks_loader.h"
+#include "services/hooks_loader.h"
 
 EFI_STATUS
 efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {

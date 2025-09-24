@@ -6,8 +6,8 @@
 #include <stdint.h>
 
 #include "get_memory_map.h"
-#include "hooks/headers.h"
-#include "hooks/hooks_loader.h"
+#include "services/headers.h"
+#include "services/hooks_loader.h"
 #include "set_variable.h"
 
 #define EFI_EVENT_VIRTUAL_ADDRESS_CHANGE_GUID \
