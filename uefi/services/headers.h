@@ -3,6 +3,8 @@
 
 #include <efi.h>
 
+#include "mem_area.h"
+
 struct set_variable_hook_header {
   EFI_SET_VARIABLE original_set_variable;
   uint32_t* waking_vector_addr;
@@ -11,8 +13,8 @@ struct set_variable_hook_header {
 
 struct get_memory_map_hook_header {
   EFI_GET_MEMORY_MAP original_get_memory_map;
-  uintptr_t waking_vector_phys_addr;
   EFI_INSTALL_CONFIGURATION_TABLE install_configuration_table;
+  struct mem_area runtime_areas[32];
 };
 
 struct virtual_address_map_event_header {
