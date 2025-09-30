@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <wchar.h>
 
 static void qemu_print_char(char c) {
   // Use QEMU's debugcon device
@@ -57,6 +58,14 @@ unsigned long qemu_print(const char* fmt, ...) {
             case 'x': {
               uint64_t arg = va_arg(args, uint64_t);
               qemu_print_unsigned_num(arg, 16);
+              break;
+            }
+            case 's': {
+              wchar_t* arg = va_arg(args, wchar_t*);
+              for (const wchar_t* arg_c = arg; *arg_c != '\0'; arg_c++) {
+                // NOTE: This treats wide strings as regular strings
+                qemu_print_char((char)*arg_c);
+              }
               break;
             }
           }
