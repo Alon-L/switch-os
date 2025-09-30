@@ -5,9 +5,12 @@
 
 #include "acpi/hook_pts.h"
 #include "acpi/tables.h"
+#include "core/header.h"
 #include "core_header_utils.h"
 #include "core_loader.h"
 #include "services/hooks_loader.h"
+
+struct core_header* g_core_header = NULL;
 
 EFI_STATUS
 efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
@@ -16,8 +19,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
   InitializeLib(ImageHandle, SystemTable);
 
   TRACE("Loading core...\n");
-  struct core_header* core_header = NULL;
-  CHECK_RETHROW(load_core(&core_header));
+  CHECK_RETHROW(load_core(&g_core_header));
 
   TRACE("Locating ACPI tables...\n");
   CHECK_RETHROW(find_acpi_tables());
@@ -29,7 +31,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
   CHECK_RETHROW(create_or_hook_pts());
 
   TRACE("Filling core header...\n");
-  CHECK_RETHROW(fill_core_header(core_header));
+  CHECK_RETHROW(fill_core_header());
 
 cleanup:
   if (IS_ERROR(err)) {

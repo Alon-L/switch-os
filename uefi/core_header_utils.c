@@ -2,8 +2,10 @@
 
 #include <efidef.h>
 #include <efilib.h>
+#include <stddef.h>
 
 #include "acpi/tables.h"
+#include "core/header.h"
 #include "pci.h"
 
 // TODO: This is currently hard coded to a virtio blk device. Make this
@@ -13,40 +15,42 @@
 
 static const struct pci_dev_id g_disk_pci_id = {.vendor_id = DISK_PCI_VENDOR_ID, .device_id = DISK_PCI_DEVICE_ID};
 
+extern struct core_header* g_core_header;
+
 /**
- * Fills `core_header.rsdp` with `g_rsdp`.
+ * Fills `g_core_header.rsdp` with `g_rsdp`.
  */
-static void fill_rsdp(struct core_header* core_header) {
-  core_header->rsdp = (uint64_t)(uintptr_t)g_rsdp;
+static void fill_rsdp(void) {
+  g_core_header->rsdp = (uint64_t)(uintptr_t)g_rsdp;
 }
 
 /**
- * Fills `core_header.facs` with `g_facs`.
+ * Fills `g_core_header.facs` with `g_facs`.
  */
-static void fill_facs(struct core_header* core_header) {
-  core_header->facs = (uint64_t)(uintptr_t)g_facs;
+static void fill_facs(void) {
+  g_core_header->facs = (uint64_t)(uintptr_t)g_facs;
 }
 
 /**
- * Locates the disk by enumerating the PCI bus, and fills `core_header->disk_pci`
+ * Locates the disk by enumerating the PCI bus, and fills `g_core_header->disk_pci`
  * with the disk's PCI location, and the BIOS-initialized BARs.
  */
-static err_t fill_disk_pci(struct core_header* core_header) {
+static err_t fill_disk_pci(void) {
   err_t err = SUCCESS;
 
   struct pci_dev disk_pci_dev = {0};
   CHECK_RETHROW(lookup_pci_dev(&disk_pci_dev, &g_disk_pci_id));
 
   // Fill the disk's pci bus information.
-  core_header->disk_pci.addr.bus = disk_pci_dev.addr.bus;
-  core_header->disk_pci.addr.device = disk_pci_dev.addr.device;
-  core_header->disk_pci.addr.function = disk_pci_dev.addr.function;
+  g_core_header->disk_pci.addr.bus = disk_pci_dev.addr.bus;
+  g_core_header->disk_pci.addr.device = disk_pci_dev.addr.device;
+  g_core_header->disk_pci.addr.function = disk_pci_dev.addr.function;
 
   // Fill the disk's bars.
   struct pci_bar pci_bar = {0};
   for (size_t i = 0; i < 6; i++) {
     CHECK_RETHROW(pci_get_bar(&disk_pci_dev, i, &pci_bar));
-    core_header->disk_pci.bars[i] = pci_bar.addr;
+    g_core_header->disk_pci.bars[i] = pci_bar.addr;
   }
 
 cleanup:
@@ -75,22 +79,22 @@ static bool is_memory_desc_usable(const EFI_MEMORY_DESCRIPTOR* desc) {
 }
 
 /**
- * Inserts a memory descriptor into `core_header->ram_areas`.
+ * Inserts a memory descriptor into `g_core_header->ram_areas`.
  *
  * This also defragments consecutive descriptors so the table is as small as possible.
  */
-static err_t insert_desc(struct core_header* core_header, const EFI_MEMORY_DESCRIPTOR* desc) {
+static err_t insert_desc(const EFI_MEMORY_DESCRIPTOR* desc) {
   err_t err = SUCCESS;
 
-  CHECK_TRACE(core_header->ram_areas_size < ARRAY_SIZE(core_header->ram_areas),
+  CHECK_TRACE(g_core_header->ram_areas_size < ARRAY_SIZE(g_core_header->ram_areas),
               "No space left for additional RAM areas!\n");
 
   size_t desc_size = desc->NumberOfPages * EFI_PAGE_SIZE;
   size_t desc_end = desc->PhysicalStart + desc_size;
 
   // Try to defragment the new descriptor into an existing consecutive descriptor.
-  for (size_t i = 0; i < core_header->ram_areas_size; i++) {
-    struct mem_area* area = &core_header->ram_areas[i];
+  for (size_t i = 0; i < g_core_header->ram_areas_size; i++) {
+    struct mem_area* area = &g_core_header->ram_areas[i];
 
     if (area->start == desc_end) {
       // An existing descriptor begins where the new descriptor ends.
@@ -103,19 +107,19 @@ static err_t insert_desc(struct core_header* core_header, const EFI_MEMORY_DESCR
     }
   }
 
-  core_header->ram_areas[core_header->ram_areas_size].start = desc->PhysicalStart;
-  core_header->ram_areas[core_header->ram_areas_size].size = desc_size;
+  g_core_header->ram_areas[g_core_header->ram_areas_size].start = desc->PhysicalStart;
+  g_core_header->ram_areas[g_core_header->ram_areas_size].size = desc_size;
 
-  core_header->ram_areas_size++;
+  g_core_header->ram_areas_size++;
 
 cleanup:
   return err;
 }
 
 /**
- * Locates all the usable memory RAM areas using the `GetMemoryMap` boot service, and fills `core_header->ram_areas`.
+ * Locates all the usable memory RAM areas using the `GetMemoryMap` boot service, and fills `g_core_header->ram_areas`.
  */
-static err_t fill_ram_areas(struct core_header* core_header) {
+static err_t fill_ram_areas(void) {
   err_t err = SUCCESS;
   EFI_MEMORY_DESCRIPTOR* memory_map = NULL;
 
@@ -145,7 +149,7 @@ static err_t fill_ram_areas(struct core_header* core_header) {
       continue;
     }
 
-    CHECK_RETHROW(insert_desc(core_header, desc));
+    CHECK_RETHROW(insert_desc(desc));
   }
 
 cleanup:
@@ -155,13 +159,13 @@ cleanup:
   return err;
 }
 
-err_t fill_core_header(struct core_header* core_header) {
+err_t fill_core_header() {
   err_t err = SUCCESS;
 
-  fill_rsdp(core_header);
-  fill_facs(core_header);
-  CHECK_RETHROW(fill_disk_pci(core_header));
-  CHECK_RETHROW(fill_ram_areas(core_header));
+  fill_rsdp();
+  fill_facs();
+  CHECK_RETHROW(fill_disk_pci());
+  CHECK_RETHROW(fill_ram_areas());
 
 cleanup:
   return err;
