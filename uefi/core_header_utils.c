@@ -7,6 +7,7 @@
 #include "acpi/tables.h"
 #include "core/header.h"
 #include "pci.h"
+#include "utils.h"
 
 // TODO: This is currently hard coded to a virtio blk device. Make this
 // configurable.

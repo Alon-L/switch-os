@@ -6,12 +6,13 @@
 
 #include "core/consts.h"
 #include "mem_area.h"
-#include "utils.h"
 
 enum core_action {
   CORE_ACTION_INVALID,
   CORE_ACTION_STORE,
   CORE_ACTION_SWITCH,
+
+  CORE_ACTION_MAX,
 };
 
 #define MAX_RAM_AREAS 64
@@ -55,29 +56,29 @@ struct core_header {
   struct mem_area ram_areas[MAX_RAM_AREAS];
 };
 
-static inline bool is_core_header_magic_valid(const struct core_header* core_header) {
-  return core_header->magic == CORE_HEADER_MAGIC;
+static inline bool is_core_header_magic_valid(uint32_t magic) {
+  return magic == CORE_HEADER_MAGIC;
 }
 
-static inline bool is_core_header_action_valid(const struct core_header* core_header) {
-  return core_header->action != CORE_ACTION_INVALID;
+static inline bool is_core_header_action_valid(enum core_action action) {
+  return action != CORE_ACTION_INVALID && action < CORE_ACTION_MAX;
 }
 
-static inline bool is_core_header_facs_valid(const struct core_header* core_header) {
-  return core_header->facs != 0;
+static inline bool is_core_header_facs_valid(uint64_t facs) {
+  return facs != 0;
 }
 
-static inline bool is_core_header_rsdp_valid(const struct core_header* core_header) {
-  return core_header->rsdp != 0;
+static inline bool is_core_header_rsdp_valid(uint64_t rsdp) {
+  return rsdp != 0;
 }
 
-static inline bool is_core_header_ram_areas_valid(const struct core_header* core_header) {
-  if (core_header->ram_areas_size > ARRAY_SIZE(core_header->ram_areas)) {
+static inline bool is_core_header_ram_areas_valid(const struct mem_area* ram_areas, uint32_t ram_areas_size) {
+  if (ram_areas_size > MAX_RAM_AREAS) {
     return false;
   }
 
-  for (uint32_t i = 0; i < core_header->ram_areas_size; i++) {
-    if (core_header->ram_areas[i].size == 0) {
+  for (uint32_t i = 0; i < ram_areas_size; i++) {
+    if (ram_areas[i].size == 0) {
       return false;
     }
   }
@@ -86,9 +87,9 @@ static inline bool is_core_header_ram_areas_valid(const struct core_header* core
 }
 
 static inline bool is_core_header_valid(const struct core_header* core_header) {
-  return is_core_header_magic_valid(core_header) && is_core_header_action_valid(core_header) &&
-         is_core_header_facs_valid(core_header) && is_core_header_rsdp_valid(core_header) &&
-         is_core_header_ram_areas_valid(core_header);
+  return is_core_header_magic_valid(core_header->magic) && is_core_header_action_valid(core_header->action) &&
+         is_core_header_facs_valid(core_header->facs) && is_core_header_rsdp_valid(core_header->rsdp) &&
+         is_core_header_ram_areas_valid(core_header->ram_areas, core_header->ram_areas_size);
 }
 
 #endif
