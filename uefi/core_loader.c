@@ -9,6 +9,8 @@
 #include <efilib.h>
 #include <error.h>
 
+#include "utils.h"
+
 extern char _binary_build_core_raw_bin_start[];
 extern char _binary_build_core_raw_bin_end[];
 
@@ -69,7 +71,7 @@ err_t load_core(struct core_header** core_header_out) {
   CHECK_RETHROW(load_memory(CORE_PM_PHYS_ADDR, CORE_PM_START, CORE_PM_SIZE));
 
   struct core_header* core_header = (struct core_header*)CORE_PHYS_ADDR;
-  CHECK(is_core_header_magic_valid(core_header));
+  CHECK(is_core_header_magic_valid(core_header->magic));
 
   *core_header_out = core_header;
 

@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "acpi/tables.h"
+#include "core/header.h"
 #include "services/headers.h"
 #include "services/hooks_loader.h"
 
@@ -14,6 +15,8 @@ struct loaded_hook g_loaded_get_memory_map;
 
 static EFI_GET_MEMORY_MAP g_original_get_memory_map = NULL;
 
+extern struct core_header* g_core_header;
+
 err_t hook_get_memory_map(void) {
   err_t err = SUCCESS;
 
@@ -21,8 +24,12 @@ err_t hook_get_memory_map(void) {
 
   *(struct get_memory_map_hook_header*)g_loaded_get_memory_map.header = (struct get_memory_map_hook_header){
     .original_get_memory_map = gBS->GetMemoryMap,
-    .waking_vector_phys_addr = (uintptr_t)&g_facs->firmware_waking_vector,
     .install_configuration_table = gBS->InstallConfigurationTable,
+    .runtime_areas =
+      {
+        {.start = (uintptr_t)&g_facs->firmware_waking_vector, .size = sizeof(g_facs->firmware_waking_vector)},
+        {.start = (uintptr_t)g_core_header, .size = sizeof(*g_core_header)},
+      },
   };
 
   g_original_get_memory_map = gBS->GetMemoryMap;

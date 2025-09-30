@@ -3,7 +3,9 @@
 
 #include "../headers.h"
 #include "error.h"
+#include "mem_area.h"
 #include "trace.h"
+#include "utils.h"
 
 #define EFI_MEMORY_ATTRIBUTES_TABLE_GUID {0xdcfa911d, 0x26eb, 0x469f, 0xa2, 0x20, 0x38, 0xb7, 0xdc, 0x46, 0x12, 0x20};
 
@@ -11,35 +13,37 @@ __attribute__((section(".header"))) struct get_memory_map_hook_header g_hook_hea
 
 EFI_STATUS EFIAPI _start(IN OUT UINTN* MemoryMapSize, IN OUT EFI_MEMORY_DESCRIPTOR* MemoryMap, OUT UINTN* MapKey,
                          OUT UINTN* DescriptorSize, OUT UINT32* DescriptorVersion) {
-  err_t err = SUCCESS;
-
   // Call the original GetMemoryMap. Its returned value is returned from the hook regardless.
   EFI_STATUS res =
     g_hook_header.original_get_memory_map(MemoryMapSize, MemoryMap, MapKey, DescriptorSize, DescriptorVersion);
 
   if (res == EFI_SUCCESS) {
-    // Locate a descriptor that contains the waking vector, and mark it as `EFI_MEMORY_RUNTIME`.
-    // This requires the kernel to map this descriptor when calling `VirtualAddressMap`, which lets us access the waking
-    // vector in our `SetVariable` hook.
-    bool is_desc_found = false;
+    // Locate all descriptors that contain any of the runtime areas, and mark them as `EFI_MEMORY_RUNTIME`.
+    // This enforces the kernel to map these descriptors when calling `VirtualAddressMap`, which lets us access them
+    // from our `SetVariable` hook.
     for (size_t i = 0; i < *MemoryMapSize / *DescriptorSize; i++) {
       EFI_MEMORY_DESCRIPTOR* desc = NextMemoryDescriptor(MemoryMap, i * *DescriptorSize);
       uintptr_t desc_end = desc->PhysicalStart + (desc->NumberOfPages * EFI_PAGE_SIZE);
 
-      // Check if the descriptor contains the waking vector inside.
-      if (desc->PhysicalStart <= g_hook_header.waking_vector_phys_addr &&
-          g_hook_header.waking_vector_phys_addr < desc_end) {
-        TRACE("Found a descriptor that contains the waking vector (%lx - %lx, type: %x)\n", desc->PhysicalStart,
-              desc_end, desc->Type);
+      // Check if the descriptor contains any of the runtime areas inside it, and if so mark it as runtime.
+      for (size_t i = 0; i < ARRAY_SIZE(g_hook_header.runtime_areas); i++) {
+        struct mem_area* runtime_area = &g_hook_header.runtime_areas[i];
 
-        CHECK_TRACE(!is_desc_found, "A descriptor containing the waking vector was found twice\n");
-        is_desc_found = true;
+        if (runtime_area->size == 0) {
+          // The last entry in the `runtime_areas` array has size 0.
+          break;
+        }
 
-        desc->Attribute |= EFI_MEMORY_RUNTIME;
+        if (is_mem_area_contained_in_range(runtime_area, desc->PhysicalStart, desc_end)) {
+          TRACE("Found a descriptor (%lx - %lx, type: %x) that contains runtime area (%lx - %lx)\n",
+                desc->PhysicalStart, desc_end, desc->Type, runtime_area->start,
+                runtime_area->start + runtime_area->size);
+
+          desc->Attribute |= EFI_MEMORY_RUNTIME;
+          break;
+        }
       }
     }
-
-    CHECK_TRACE(is_desc_found, "A descriptor containing the waking_vector was not found\n");
   }
 
   // The Memory Attributes Table (see section 4.6.4 of the UEFI specs) allows fine-tuning page permissions for runtime
@@ -61,6 +65,5 @@ EFI_STATUS EFIAPI _start(IN OUT UINTN* MemoryMapSize, IN OUT EFI_MEMORY_DESCRIPT
   EFI_GUID memory_attributes_table_guid = EFI_MEMORY_ATTRIBUTES_TABLE_GUID;
   g_hook_header.install_configuration_table(&memory_attributes_table_guid, NULL);
 
-cleanup:
   return res;
 }

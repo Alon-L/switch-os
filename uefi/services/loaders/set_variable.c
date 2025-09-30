@@ -14,6 +14,8 @@ struct loaded_hook g_loaded_set_variable;
 
 static EFI_SET_VARIABLE g_original_set_variable = NULL;
 
+extern struct core_header* g_core_header;
+
 err_t hook_set_variable(void) {
   err_t err = SUCCESS;
 
@@ -23,6 +25,7 @@ err_t hook_set_variable(void) {
     .original_set_variable = gRT->SetVariable,
     .waking_vector_addr = &g_facs->firmware_waking_vector,
     .original_waking_vector_addr = (uint32_t*)&g_facs->rsvd1,
+    .core_header = g_core_header,
   };
 
   g_original_set_variable = gRT->SetVariable;
