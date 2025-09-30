@@ -5,12 +5,8 @@
 #include <stdint.h>
 
 #include "core/consts.h"
+#include "mem_area.h"
 #include "utils.h"
-
-struct mem_area {
-  uint64_t start;
-  uint64_t size;
-};
 
 enum core_action {
   CORE_ACTION_INVALID,
