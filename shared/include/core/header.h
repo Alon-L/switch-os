@@ -1,15 +1,10 @@
 #ifndef _INCLUDE_CORE_HEADER
 #define _INCLUDE_CORE_HEADER
 
-#include "core/consts.h"
-
-#if defined(CORE) || defined(UEFI)
 #include <stdbool.h>
 #include <stdint.h>
-#elif defined(MODULE)
-#include <linux/kernel.h>
-#endif
 
+#include "core/consts.h"
 #include "utils.h"
 
 struct mem_area {
