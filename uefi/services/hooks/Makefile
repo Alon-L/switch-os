@@ -6,6 +6,7 @@ CFLAGS := -I$(GNU_EFI)/inc \
 	-ffunction-sections \
 	-D GNU_EFI_USE_MS_ABI \
 	-I . \
+	-I $(ROOT_DIR)/uefi \
 	-I $(ROOT_DIR)/shared/include/
 
 LDFLAGS := -ffreestanding -nostdlib -nostartfiles

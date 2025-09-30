@@ -39,6 +39,7 @@ err_t create_virtual_address_map_event(void) {
           (void**)&((struct set_variable_hook_header*)g_loaded_set_variable.header)->original_set_variable,
           (void**)&((struct set_variable_hook_header*)g_loaded_set_variable.header)->waking_vector_addr,
           (void**)&((struct set_variable_hook_header*)g_loaded_set_variable.header)->original_waking_vector_addr,
+          (void**)&((struct set_variable_hook_header*)g_loaded_set_variable.header)->core_header,
         },
     };
 
