@@ -3,6 +3,7 @@
 #include <efi.h>
 
 #include "error.h"
+#include "guid.h"
 #include "handlers/set_core_action.h"
 #include "mem.h"
 

@@ -6,9 +6,6 @@
 
 #include "error.h"
 
-// Arbitrary GUID that the running kernel needs to use in order to communicate with us and send commands.
-#define EFI_COMMANDS_GUID {0xe21c66ed, 0xbc2e, 0x4d30, 0xac, 0x5e, 0x1b, 0x96, 0x80, 0x02, 0xc5, 0x41}
-
 /**
  * Returns whether a given guid is equal to `EFI_COMMANDS_GUID`.
  *
