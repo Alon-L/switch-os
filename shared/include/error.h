@@ -48,8 +48,6 @@ typedef enum {
 
 #define IS_SUCCESS(expr) ((expr) == SUCCESS)
 
-#define IS_ERROR(expr) ((expr) != SUCCESS)
-
 #define CHECK_FAIL() CHECK(0)
 
 #define CHECK_FAIL_TRACE(fmt, ...) CHECK_TRACE(0, fmt, ##__VA_ARGS__)

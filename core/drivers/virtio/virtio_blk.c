@@ -197,7 +197,7 @@ err_t init_virtio_blk_dev(struct virtio_blk_dev* virtio_blk_dev) {
   write_mb8(&virtio_blk_dev->common_cfg->device_status, virtio_blk_dev->status);
 
 cleanup:
-  if (IS_ERROR(err)) {
+  if (!IS_SUCCESS(err)) {
     if (virtio_blk_dev->common_cfg != NULL) {
       write16(&virtio_blk_dev->common_cfg->device_status, VIRTIO_STATUS_FAILED);
     }

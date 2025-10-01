@@ -34,7 +34,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
   CHECK_RETHROW(fill_core_header());
 
 cleanup:
-  if (IS_ERROR(err)) {
+  if (!IS_SUCCESS(err)) {
     unhook_services();
     return EFI_LOAD_ERROR;
   } else {
