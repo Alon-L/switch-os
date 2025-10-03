@@ -1,6 +1,8 @@
 #ifndef _INCLUDE_ERROR
 #define _INCLUDE_ERROR
 
+#include <stdint.h>
+
 #include "trace.h"
 
 typedef enum {
@@ -10,14 +12,16 @@ typedef enum {
 
 #define CHECK(expr) CHECK_TRACE((expr), "Error on %s:%u\n", __FILE__, (uint32_t)__LINE__);
 
-#define CHECK_RETHROW(expr)                                             \
-  do {                                                                  \
-    err_t _err = (expr);                                                \
-    if (!IS_SUCCESS(_err)) {                                            \
-      err = _err;                                                       \
-      TRACE("Rethrown error on %s:%u\n", __FILE__, (uint32_t)__LINE__); \
-      goto cleanup;                                                     \
-    }                                                                   \
+#define CHECK_RETHROW(expr) CHECK_RETHROW_TRACE(expr, "Rethrown error on %s:%u\n", __FILE__, (uint32_t)__LINE__)
+
+#define CHECK_RETHROW_TRACE(expr, fmt, ...) \
+  do {                                      \
+    err_t _err = (expr);                    \
+    if (!IS_SUCCESS(_err)) {                \
+      err = _err;                           \
+      TRACE(fmt, ##__VA_ARGS__);            \
+      goto cleanup;                         \
+    }                                       \
   } while (0)
 
 #define CHECK_RETHROW_SILENT(expr) \
@@ -49,6 +53,8 @@ typedef enum {
 #define IS_SUCCESS(expr) ((expr) == SUCCESS)
 
 #define CHECK_FAIL() CHECK(0)
+
+#define CHECK_FAIL_SILENT() CHECK_SILENT(0)
 
 #define CHECK_FAIL_TRACE(fmt, ...) CHECK_TRACE(0, fmt, ##__VA_ARGS__)
 

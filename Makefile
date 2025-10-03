@@ -30,8 +30,10 @@ ifdef QEMU_DEBUG
 endif
 
 clean:
+	rm -rf build/*
 	$(MAKE) -C core clean
 	$(MAKE) -C uefi clean
+	$(MAKE) -C cli clean
 
 .PHONY: clean
 
@@ -52,7 +54,14 @@ build/efi: uefi/build/app.efi
 	mkdir -p $@/EFI/BOOT
 	cp -f $^ $@/EFI/BOOT/BOOTX64.efi
 
-build: build/efi
+build/cli:
+	$(MAKE) -C cli
+	@rm -rf $@
+	@cp -r cli/build $@
+
+build: build/efi build/cli
+
+.PHONY: build build/efi build/cli
 
 qemu: build
 	$(QEMU) \
