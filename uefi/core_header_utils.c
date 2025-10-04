@@ -59,13 +59,14 @@ cleanup:
 }
 
 /**
- * According to the UEFI specs (table 7.6 in section 7.2), all of the following memory types can be used
- * by the OS as RAM after full initialization.
+ * A whitelist of memory descriptor types which will be stored and switched by core.
+ * They represent descriptors that the OS uses. These either include descriptor types that the OS can freely use as
+ * memory (see table 7.6 in section 7.2 of the UEFI specs), or descriptor types which the OS uses implicitly (such as
+ * runtime services).
  */
 static const EFI_MEMORY_TYPE g_usable_memory_types[] = {
-  EfiLoaderCode,         EfiLoaderData,        EfiBootServicesCode, EfiBootServicesData,
-  EfiConventionalMemory, EfiACPIReclaimMemory, EfiPersistentMemory,
-};
+  EfiLoaderCode,        EfiLoaderData,       EfiBootServicesCode,    EfiBootServicesData,   EfiConventionalMemory,
+  EfiACPIReclaimMemory, EfiPersistentMemory, EfiRuntimeServicesCode, EfiRuntimeServicesData};
 
 /**
  * Returns whether a given memory descriptor can be used by the OS as RAM.
