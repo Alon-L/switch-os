@@ -27,4 +27,8 @@
 #define ALIGN_UP(x, align_to) (((x) + ((align_to) - 1)) & ~((align_to) - 1))
 #endif
 
+#ifndef UNUSED_PARAM
+#define UNUSED_PARAM __attribute__((unused))
+#endif
+
 #endif
