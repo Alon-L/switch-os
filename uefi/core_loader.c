@@ -27,8 +27,6 @@ extern char _binary_build_pm_bin_trimmed_end[];
 #define CORE_PM_START (_binary_build_pm_bin_trimmed_start)
 #define CORE_PM_SIZE ((uintptr_t)_binary_build_pm_bin_trimmed_end - (uintptr_t)_binary_build_pm_bin_trimmed_start)
 
-#define ALIGN_UP(x, align_to) (((x) + ((align_to) - 1)) & ~((align_to) - 1))
-
 /**
  * Allocate pages of type EfiReservedMemoryType to reserve this memory from usage by the OS.
  */

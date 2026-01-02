@@ -56,6 +56,15 @@ BUILD_MMIO_WRITE(write_mb32, uint32_t, "l", : "memory");
 #undef BUILD_MMIO_READ
 #undef BUILD_MMIO_WRITE
 
+static inline __attribute__((always_inline)) uint64_t read64(volatile void* addr) {
+  return ((uint64_t)read32(addr + 4) << 32) | read32(addr);
+}
+
+static inline __attribute__((always_inline)) void write64(volatile void* addr, uint64_t value) {
+  write32(addr, (uint32_t)value);
+  write32(addr + 4, (uint32_t)(value >> 32));
+}
+
 #define mb() asm volatile("mfence" : : : "memory")
 
 #endif

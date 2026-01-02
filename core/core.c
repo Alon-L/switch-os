@@ -2,6 +2,7 @@
 #include "alloc.h"
 #include "core/consts.h"
 #include "core/header.h"
+#include "drivers/nvme/nvme.h"
 #include "drivers/virtio/virtio_blk.h"
 #include "dump.h"
 #include "error.h"
@@ -24,6 +25,11 @@ __attribute__((noreturn)) void core_main(void) {
   g_kernel_waking_vector = g_core_header.original_waking_vector;
 
   CHECK(is_core_header_valid(&g_core_header));
+
+  struct nvme_ctrl ctrl;
+  CHECK_RETHROW(init_nvme_ctrl(&ctrl));
+  TRACE("Finished init...\n");
+  CHECK_FAIL();
 
   struct virtio_blk_dev virtio_blk_dev;
   CHECK_RETHROW(init_virtio_blk_dev(&virtio_blk_dev));

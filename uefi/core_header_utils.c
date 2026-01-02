@@ -10,7 +10,10 @@
 #define DISK_PCI_VENDOR_ID 0x1AF4
 #define DISK_PCI_DEVICE_ID 0x1001
 
-static const struct pci_dev_id g_disk_pci_id = {.vendor_id = DISK_PCI_VENDOR_ID, .device_id = DISK_PCI_DEVICE_ID};
+#define QEMU_NVME_VENDOR_ID 0x1b36
+#define QEMU_NVME_DEVICE_ID 0x0010
+
+static const struct pci_dev_id g_disk_pci_id = {.vendor_id = QEMU_NVME_VENDOR_ID, .device_id = QEMU_NVME_DEVICE_ID};
 
 /**
  * Locates the RSDP in the EFI SystemTable, and fills `core_header.rsdp`.
