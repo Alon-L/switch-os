@@ -1,6 +1,7 @@
 GNU_EFI ?= $(error Must pass GNU_EFI variable)
 
-CFLAGS := -I$(GNU_EFI)/inc \
+CFLAGS := -std=c11 \
+	-I$(GNU_EFI)/inc \
 	-fpic -ffreestanding -fno-stack-protector \
 	-fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args \
 	-I . \

@@ -9,7 +9,7 @@ OBJS += commands/switch.o
 
 OBJS += lib/argtable/argtable3.o
 
-CFLAGS := -Wall -Wextra -Werror \
+CFLAGS := -std=c11 -Wall -Wextra -Werror \
 					-I $(ROOT_DIR)/shared/include/ \
 					-I. \
 					-I lib/argtable \
