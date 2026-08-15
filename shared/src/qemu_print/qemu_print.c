@@ -5,7 +5,7 @@
 
 static void qemu_print_char(char c) {
   // Use QEMU's debugcon device
-  asm volatile("outb %0, $0xe9" ::"r"(c));
+  __asm__ volatile("outb %0, $0xe9" ::"r"(c));
 }
 
 static void qemu_print_chars(const char* chars, size_t size) {
