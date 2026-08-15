@@ -1,4 +1,4 @@
-CFLAGS := -Wall -Wextra -Werror \
+CFLAGS := -std=c11 -Wall -Wextra -Werror \
 					-I $(ROOT_DIR)/shared/include/ -I. -ffreestanding -static -O0 -fno-zero-initialized-in-bss \
 					-D CORE \
 					-fno-pic \
