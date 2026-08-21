@@ -8,7 +8,7 @@
 #include "mem_area.h"
 
 enum core_action {
-  CORE_ACTION_INVALID,
+  CORE_ACTION_NOOP,
   CORE_ACTION_STORE,
   CORE_ACTION_SWITCH,
 
@@ -61,7 +61,7 @@ static inline bool is_core_header_magic_valid(uint32_t magic) {
 }
 
 static inline bool is_core_header_action_valid(enum core_action action) {
-  return action != CORE_ACTION_INVALID && action < CORE_ACTION_MAX;
+  return action < CORE_ACTION_MAX;
 }
 
 static inline bool is_core_header_facs_valid(uint64_t facs) {

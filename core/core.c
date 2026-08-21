@@ -9,7 +9,7 @@
 
 __attribute__((section(".core_header"))) struct core_header g_core_header = {
   .magic = CORE_HEADER_MAGIC,
-  .action = CORE_ACTION_INVALID,
+  .action = CORE_ACTION_NOOP,
 };
 
 __attribute__((noreturn)) void core_main(void) {

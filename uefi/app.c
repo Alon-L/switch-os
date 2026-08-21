@@ -33,6 +33,8 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
   TRACE("Filling core header...\n");
   CHECK_RETHROW(fill_core_header());
 
+  TRACE("Initialized!\n");
+
 cleanup:
   if (!IS_SUCCESS(err)) {
     unhook_services();
