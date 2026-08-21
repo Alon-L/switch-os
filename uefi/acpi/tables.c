@@ -28,7 +28,7 @@ static err_t find_rsdp(void) {
   for (size_t i = 0; i < ST->NumberOfTableEntries; i++) {
     EFI_CONFIGURATION_TABLE* table = &ST->ConfigurationTable[i];
 
-    if (CompareGuid(&table->VendorGuid, &acpi_20_table_guid) == 0) {
+    if (CompareGuid(&table->VendorGuid, &acpi_20_table_guid)) {
       // The RSDP should only appear once.
       CHECK_TRACE(g_rsdp == NULL, "The RSDP was found twice inside the SystemTable\n");
       g_rsdp = table->VendorTable;
